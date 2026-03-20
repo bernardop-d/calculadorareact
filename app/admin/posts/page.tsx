@@ -15,6 +15,9 @@ interface PostFormData {
   description?: string;
   isPremium: boolean;
   published: boolean;
+  contentTier: "FREE" | "BASIC" | "PREMIUM";
+  ppvPrice?: number | null;
+  unlocksAfterDays?: number | null;
 }
 
 interface Post {
@@ -23,6 +26,9 @@ interface Post {
   description: string | null;
   isPremium: boolean;
   published: boolean;
+  contentTier: string | null;
+  ppvPrice: number | null;
+  unlocksAfterDays: number | null;
   createdAt: string;
   _count: { media: number };
   media: { url: string; type: string }[];
@@ -44,7 +50,8 @@ export default function AdminPostsPage() {
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<PostFormData>({ resolver: zodResolver(postSchema) });
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } = useForm<PostFormData>({ resolver: zodResolver(postSchema) as any });
 
   const fetchPosts = useCallback(async () => {
     const res = await fetch("/api/admin/posts");
@@ -59,7 +66,7 @@ export default function AdminPostsPage() {
 
   function startCreate() {
     setEditingPost(null);
-    reset({ title: "", description: "", isPremium: true, published: false });
+    reset({ title: "", description: "", isPremium: true, published: false, contentTier: "PREMIUM", ppvPrice: null, unlocksAfterDays: null });
     setMode("create");
   }
 
@@ -70,6 +77,9 @@ export default function AdminPostsPage() {
       description: post.description ?? "",
       isPremium: post.isPremium,
       published: post.published,
+      contentTier: (post.contentTier as "FREE" | "BASIC" | "PREMIUM") ?? "PREMIUM",
+      ppvPrice: post.ppvPrice,
+      unlocksAfterDays: post.unlocksAfterDays,
     });
     setMode("edit");
   }
@@ -138,7 +148,8 @@ export default function AdminPostsPage() {
           {mode === "create" ? "Novo post" : "Editar post"}
         </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+        <form onSubmit={(handleSubmit as any)(onSubmit)} className="space-y-5">
           <Input
             label="Título"
             id="title"
@@ -159,13 +170,49 @@ export default function AdminPostsPage() {
             />
           </div>
 
+          <div className="space-y-1.5">
+            <label className="block text-sm font-medium text-zinc-300">Nível de acesso</label>
+            <select
+              className="w-full px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white focus:outline-none focus:ring-2 focus:ring-[#F5C400]/40"
+              {...register("contentTier")}
+            >
+              <option value="FREE">Grátis</option>
+              <option value="BASIC">Básico</option>
+              <option value="PREMIUM">Premium</option>
+            </select>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-zinc-300">Preço PPV (R$) — opcional</label>
+              <input
+                type="number"
+                step="0.01"
+                min="0"
+                placeholder="Ex: 9.90"
+                className="w-full px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#F5C400]/40"
+                {...register("ppvPrice", { valueAsNumber: true })}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-zinc-300">Libera após (dias) — opcional</label>
+              <input
+                type="number"
+                min="0"
+                placeholder="Ex: 7"
+                className="w-full px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#F5C400]/40"
+                {...register("unlocksAfterDays", { valueAsNumber: true })}
+              />
+            </div>
+          </div>
+
           <div className="flex gap-6">
             <label className="flex items-center gap-2 cursor-pointer text-sm text-zinc-300">
-              <input type="checkbox" className="accent-rose-500" {...register("isPremium")} />
+              <input type="checkbox" className="accent-[#F5C400]" {...register("isPremium")} />
               Premium (requer assinatura)
             </label>
             <label className="flex items-center gap-2 cursor-pointer text-sm text-zinc-300">
-              <input type="checkbox" className="accent-rose-500" {...register("published")} />
+              <input type="checkbox" className="accent-[#F5C400]" {...register("published")} />
               Publicado
             </label>
           </div>

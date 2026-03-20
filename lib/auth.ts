@@ -53,9 +53,13 @@ export async function getAuthUser() {
         role: true,
         ageVerified: true,
         avatarUrl: true,
+        bio: true,
         subscription: {
           select: {
             status: true,
+            planTier: true,
+            stripePriceId: true,
+            currentPeriodStart: true,
             currentPeriodEnd: true,
           },
         },
@@ -68,8 +72,14 @@ export async function getAuthUser() {
   }
 }
 
-export function isSubscriptionActive(
-  status: string | undefined
-): boolean {
+export function isSubscriptionActive(status: string | undefined): boolean {
   return status === "ACTIVE";
+}
+
+export function getSubscriptionTier(
+  stripePriceId: string | undefined
+): "BASIC" | "PREMIUM" | null {
+  if (!stripePriceId) return null;
+  if (stripePriceId === process.env.STRIPE_PRICE_ID_BASIC) return "BASIC";
+  return "PREMIUM";
 }

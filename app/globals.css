@@ -1,11 +1,47 @@
 @import "tailwindcss";
 
 :root {
-  --background: #09090b;
-  --foreground: #fafafa;
+  --background: #080808;
+  --foreground: #ffffff;
+  --accent: #F5C400;
+  --accent-hover: #FFD700;
+  --card: rgba(255, 255, 255, 0.04);
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 body {
   background-color: var(--background);
   color: var(--foreground);
+  font-family: var(--font-geist);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #111;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+/* Gold glow utility */
+.glow-gold {
+  box-shadow: 0 0 30px rgba(245, 196, 0, 0.15);
+}
+
+/* Hero background image */
+.hero-bg-image {
+  opacity: 0.22;
+  filter: blur(3px) saturate(0.5);
+}
+
+/* Partial preview — clip layers */
+.clip-top-25 { clip-path: inset(0 0 75% 0); }
+.clip-bottom-75 { clip-path: inset(25% 0 0 0); }
+.preview-fade {
+  top: calc(25% - 2rem);
+  background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8));
 }

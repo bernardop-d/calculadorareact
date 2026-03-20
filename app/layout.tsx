@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-import Navbar from "@/components/Navbar";
+import ConditionalNav from "@/components/ConditionalNav";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -10,7 +10,7 @@ const geist = Geist({
 });
 
 export const metadata: Metadata = {
-  title: "ContentHub — Conteúdo Exclusivo",
+  title: "Queen Rayalla — Conteúdo Exclusivo",
   description: "Conteúdo exclusivo para maiores de 18 anos.",
 };
 
@@ -21,10 +21,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full bg-zinc-950 text-white">
+      <body className="min-h-full bg-[#080808] text-white">
         <AuthProvider>
-          <Navbar />
-          <main className="pt-16">{children}</main>
+          <ConditionalNav />
+          {children}
         </AuthProvider>
       </body>
     </html>

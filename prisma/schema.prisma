@@ -4,25 +4,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  INACTIVE
-  CANCELLED
-  PAST_DUE
-}
-
-enum ContentType {
-  IMAGE
-  VIDEO
-  TEXT
+  provider = "sqlite"
 }
 
 model User {
@@ -30,9 +12,10 @@ model User {
   email            String    @unique
   password         String
   name             String?
+  bio              String?
   birthDate        DateTime?
   ageVerified      Boolean   @default(false)
-  role             Role      @default(USER)
+  role             String    @default("USER")
   avatarUrl        String?
   stripeCustomerId String?   @unique
   resetToken       String?
@@ -40,23 +23,33 @@ model User {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  subscription Subscription?
-  payments     Payment[]
+  subscription     Subscription?
+  payments         Payment[]
+  likes            Like[]
+  comments         Comment[]
+  postPurchases    PostPurchase[]
+  tips             Tip[]
+  storyViews       StoryView[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
 
   @@index([email])
 }
 
 model Subscription {
-  id                   String             @id @default(cuid())
-  userId               String             @unique
-  stripeSubscriptionId String             @unique
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  stripeSubscriptionId String    @unique
   stripePriceId        String
-  status               SubscriptionStatus @default(INACTIVE)
+  planTier             String    @default("PREMIUM")
+  status               String    @default("INACTIVE")
   currentPeriodStart   DateTime
   currentPeriodEnd     DateTime
-  cancelAtPeriodEnd    Boolean            @default(false)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  cancelAtPeriodEnd    Boolean   @default(false)
+  cancelledAt          DateTime?
+  winBackSent          Boolean   @default(false)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
@@ -77,26 +70,128 @@ model Payment {
 }
 
 model Post {
-  id          String   @id @default(cuid())
-  title       String
-  description String?
-  isPremium   Boolean  @default(true)
-  published   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id               String   @id @default(cuid())
+  title            String
+  description      String?
+  isPremium        Boolean  @default(true)
+  contentTier      String   @default("PREMIUM")
+  ppvPrice         Int?
+  unlocksAfterDays Int?
+  likeCount        Int      @default(0)
+  published        Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  media Media[]
+  media     Media[]
+  likes     Like[]
+  comments  Comment[]
+  purchases PostPurchase[]
 }
 
 model Media {
-  id        String      @id @default(cuid())
+  id        String   @id @default(cuid())
   postId    String
   url       String
-  type      ContentType
+  type      String
   filename  String
   size      Int
-  order     Int         @default(0)
-  createdAt DateTime    @default(now())
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
 
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([postId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  postId    String
+  userId    String
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+}
+
+model PostPurchase {
+  id                    String   @id @default(cuid())
+  postId                String
+  userId                String
+  stripePaymentIntentId String   @unique
+  amount                Int
+  status                String   @default("pending")
+  createdAt             DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, userId])
+  @@index([userId])
+}
+
+model Tip {
+  id                    String   @id @default(cuid())
+  fromUserId            String
+  stripePaymentIntentId String   @unique
+  amount                Int
+  message               String?
+  status                String   @default("pending")
+  createdAt             DateTime @default(now())
+
+  fromUser User @relation(fields: [fromUserId], references: [id], onDelete: Cascade)
+
+  @@index([fromUserId])
+}
+
+model Story {
+  id        String   @id @default(cuid())
+  mediaUrl  String
+  mediaType String   @default("IMAGE")
+  caption   String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  views StoryView[]
+}
+
+model StoryView {
+  id       String   @id @default(cuid())
+  storyId  String
+  userId   String
+  viewedAt DateTime @default(now())
+
+  story Story @relation(fields: [storyId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([storyId, userId])
+}
+
+model Message {
+  id         String    @id @default(cuid())
+  fromUserId String
+  toUserId   String
+  body       String
+  readAt     DateTime?
+  createdAt  DateTime  @default(now())
+
+  fromUser User @relation("SentMessages",     fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUser   User @relation("ReceivedMessages", fields: [toUserId],   references: [id], onDelete: Cascade)
+
+  @@index([toUserId, createdAt])
+  @@index([fromUserId, createdAt])
 }

@@ -4,52 +4,48 @@ import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "./ui/Button";
 import { useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Crown } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout, isSubscribed, isAdmin } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/5">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between h-16">
-          <Link href="/" className="text-xl font-bold text-white">
-            <span className="text-rose-500">✦</span> ContentHub
+
+          {/* Logo */}
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-[#F5C400]/10 border border-[#F5C400]/40 rounded-lg flex items-center justify-center">
+              <Crown size={16} className="text-[#F5C400]" />
+            </div>
+            <span className="font-bold text-base tracking-wide">
+              <span className="text-white">Queen </span>
+              <span className="text-[#F5C400]">Rayalla</span>
+            </span>
           </Link>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-4">
+          {/* Desktop */}
+          <div className="hidden md:flex items-center gap-3">
             {user ? (
               <>
-                {isAdmin && (
-                  <Link
-                    href="/admin"
-                    className="text-sm text-zinc-300 hover:text-white transition-colors"
-                  >
-                    Admin
-                  </Link>
-                )}
                 {!isAdmin && (
                   <>
-                    <Link
-                      href="/dashboard"
-                      className="text-sm text-zinc-300 hover:text-white transition-colors"
-                    >
+                    <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
                       Conteúdos
                     </Link>
                     {!isSubscribed && (
                       <Link href="/payment">
-                        <Button size="sm" variant="primary">
-                          Assinar
-                        </Button>
+                        <Button size="sm">Assinar</Button>
                       </Link>
                     )}
                   </>
                 )}
                 <button
+                  type="button"
                   onClick={logout}
-                  className="text-sm text-zinc-400 hover:text-white transition-colors"
+                  className="text-sm text-zinc-500 hover:text-white transition-colors px-3 py-1.5"
                 >
                   Sair
                 </button>
@@ -57,9 +53,9 @@ export default function Navbar() {
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="ghost" size="sm">
+                  <button type="button" className="text-sm text-zinc-300 hover:text-white transition-colors px-4 py-2">
                     Entrar
-                  </Button>
+                  </button>
                 </Link>
                 <Link href="/register">
                   <Button size="sm">Cadastrar</Button>
@@ -68,9 +64,10 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu toggle */}
+          {/* Mobile toggle */}
           <button
-            className="md:hidden text-zinc-300"
+            type="button"
+            className="md:hidden text-zinc-300 hover:text-white"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X size={22} /> : <Menu size={22} />}
@@ -80,46 +77,25 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-zinc-950 border-t border-zinc-800 px-4 py-4 space-y-3">
+        <div className="md:hidden bg-black/95 border-t border-white/5 px-4 py-4 space-y-2">
           {user ? (
             <>
               {isAdmin ? (
-                <Link href="/admin" className="block text-zinc-300 hover:text-white">
-                  Admin
-                </Link>
+                <Link href="/admin" className="block py-2 text-zinc-300 hover:text-white">Admin</Link>
               ) : (
                 <>
-                  <Link href="/dashboard" className="block text-zinc-300 hover:text-white">
-                    Conteúdos
-                  </Link>
+                  <Link href="/dashboard" className="block py-2 text-zinc-300 hover:text-white">Conteúdos</Link>
                   {!isSubscribed && (
-                    <Link href="/payment" className="block">
-                      <Button size="sm" className="w-full">
-                        Assinar Agora
-                      </Button>
-                    </Link>
+                    <Link href="/payment"><Button className="w-full mt-1">Assinar Agora</Button></Link>
                   )}
                 </>
               )}
-              <button
-                onClick={logout}
-                className="block w-full text-left text-zinc-400 hover:text-white"
-              >
-                Sair
-              </button>
+              <button type="button" onClick={logout} className="block w-full text-left py-2 text-zinc-500 hover:text-white text-sm">Sair</button>
             </>
           ) : (
             <>
-              <Link href="/login" className="block">
-                <Button variant="ghost" size="sm" className="w-full">
-                  Entrar
-                </Button>
-              </Link>
-              <Link href="/register" className="block">
-                <Button size="sm" className="w-full">
-                  Cadastrar
-                </Button>
-              </Link>
+              <Link href="/login" className="block py-2 text-zinc-300 hover:text-white text-sm">Entrar</Link>
+              <Link href="/register"><Button className="w-full mt-1">Cadastrar</Button></Link>
             </>
           )}
         </div>

@@ -79,10 +79,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     if (data.user.role === "ADMIN") {
       router.push("/admin");
-    } else if (data.user.subscriptionStatus === "ACTIVE") {
-      router.push("/dashboard");
     } else {
-      router.push("/payment");
+      router.push("/dashboard");
     }
   };
 

@@ -38,6 +38,7 @@ export async function createOrRetrieveCustomer(
 export async function createCheckoutSession(
   customerId: string,
   userId: string,
+  priceId: string,
   successUrl: string,
   cancelUrl: string
 ) {
@@ -45,18 +46,26 @@ export async function createCheckoutSession(
     customer: customerId,
     payment_method_types: ["card"],
     mode: "subscription",
-    line_items: [
-      {
-        price: process.env.STRIPE_PRICE_ID!,
-        quantity: 1,
-      },
-    ],
+    line_items: [{ price: priceId, quantity: 1 }],
     success_url: successUrl,
     cancel_url: cancelUrl,
     metadata: { userId },
-    subscription_data: {
-      metadata: { userId },
-    },
+    subscription_data: { metadata: { userId } },
+  });
+}
+
+export async function createPaymentIntent(
+  customerId: string,
+  amount: number,
+  currency: string,
+  metadata: Record<string, string>
+) {
+  return stripe.paymentIntents.create({
+    customer: customerId,
+    amount,
+    currency,
+    metadata,
+    automatic_payment_methods: { enabled: true },
   });
 }
 
