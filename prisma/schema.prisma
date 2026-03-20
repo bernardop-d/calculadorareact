@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  CANCELLED
+  PAST_DUE
+}
+
+enum ContentType {
+  IMAGE
+  VIDEO
+  TEXT
+}
+
+model User {
+  id               String    @id @default(cuid())
+  email            String    @unique
+  password         String
+  name             String?
+  birthDate        DateTime?
+  ageVerified      Boolean   @default(false)
+  role             Role      @default(USER)
+  avatarUrl        String?
+  stripeCustomerId String?   @unique
+  resetToken       String?
+  resetTokenExpiry DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  subscription Subscription?
+  payments     Payment[]
+
+  @@index([email])
+}
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  stripeSubscriptionId String             @unique
+  stripePriceId        String
+  status               SubscriptionStatus @default(INACTIVE)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  userId          String
+  stripePaymentId String   @unique
+  amount          Int
+  currency        String   @default("brl")
+  status          String
+  description     String?
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Post {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  isPremium   Boolean  @default(true)
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  media Media[]
+}
+
+model Media {
+  id        String      @id @default(cuid())
+  postId    String
+  url       String
+  type      ContentType
+  filename  String
+  size      Int
+  order     Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
