@@ -38,7 +38,7 @@ yarn-error.log*
 
 # local credentials
 CREDENCIAIS.md
-
+dev.db
 # typescript
 *.tsbuildinfo
 next-env.d.ts
