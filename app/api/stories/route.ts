@@ -12,9 +12,9 @@ export async function GET(_req: NextRequest) {
   const stories = await prisma.story.findMany({
     where: { expiresAt: { gt: now } },
     orderBy: { createdAt: "desc" },
-    include: user
-      ? { views: { where: { userId: user.id }, select: { id: true } } }
-      : undefined,
+    include: {
+      views: { where: { userId: user?.id ?? "" }, select: { id: true } },
+    },
   });
 
   return NextResponse.json(

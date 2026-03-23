@@ -106,7 +106,7 @@ export async function GET(req: NextRequest) {
     .jpeg({ quality: 93 })
     .toBuffer();
 
-  return new NextResponse(watermarked, {
+  return new Response(new Uint8Array(watermarked), {
     headers: {
       "Content-Type": "image/jpeg",
       "Cache-Control": "no-store, no-cache, must-revalidate, private",

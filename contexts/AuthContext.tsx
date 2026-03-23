@@ -44,17 +44,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const refresh = useCallback(async () => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 6000);
     try {
-      const res = await fetch("/api/auth/me");
+      const res = await fetch("/api/auth/me", { signal: controller.signal });
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
       } else {
+        // Cookie inválido/expirado — apaga para não criar loop proxy ↔ auth
+        await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
         setUser(null);
       }
     } catch {
       setUser(null);
     } finally {
+      clearTimeout(timeout);
       setLoading(false);
     }
   }, []);

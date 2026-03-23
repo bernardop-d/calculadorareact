@@ -40,7 +40,8 @@ export default function ProtectedVideo({ src, watermark }: Props) {
   const videoRef      = useRef<HTMLVideoElement>(null);
   const canvasRef     = useRef<HTMLCanvasElement>(null);
   const containerRef  = useRef<HTMLDivElement>(null);
-  const progressRef   = useRef<HTMLDivElement>(null);
+  const progressRef     = useRef<HTMLDivElement>(null);
+  const progressFillRef = useRef<HTMLDivElement>(null);
   const glRef         = useRef<WebGLRenderingContext | null>(null);
   const texRef        = useRef<WebGLTexture | null>(null);
   const rafRef        = useRef<number>(0);
@@ -48,7 +49,7 @@ export default function ProtectedVideo({ src, watermark }: Props) {
 
   const [playing, setPlaying]           = useState(false);
   const [muted, setMuted]               = useState(false);
-  const [progress, setProgress]         = useState(0);
+
   const [currentTime, setCurrentTime]   = useState(0);
   const [duration, setDuration]         = useState(0);
   const [showControls, setShowControls] = useState(true);
@@ -161,7 +162,10 @@ export default function ProtectedVideo({ src, watermark }: Props) {
     const v = videoRef.current;
     if (!v) return;
     setCurrentTime(v.currentTime);
-    setProgress(v.duration ? (v.currentTime / v.duration) * 100 : 0);
+    const pct = v.duration ? (v.currentTime / v.duration) * 100 : 0;
+    if (progressFillRef.current) {
+      progressFillRef.current.style.width = `${pct}%`;
+    }
   };
 
   const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -249,24 +253,21 @@ export default function ProtectedVideo({ src, watermark }: Props) {
           className="w-full h-1.5 bg-white/20 rounded-full mb-3 cursor-pointer"
           onClick={handleSeek}
         >
-          <div
-            className="h-full bg-[#F5C400] rounded-full transition-all"
-            style={{ width: `${progress}%` }}
-          />
+          <div ref={progressFillRef} className="h-full bg-[#F5C400] rounded-full transition-all" />
         </div>
 
         <div className="flex items-center gap-3">
-          <button type="button" onClick={togglePlay} className="text-white hover:text-[#F5C400] transition-colors">
+          <button type="button" title={playing ? "Pausar" : "Reproduzir"} onClick={togglePlay} className="text-white hover:text-[#F5C400] transition-colors">
             {playing ? <Pause size={18} /> : <Play size={18} />}
           </button>
-          <button type="button" onClick={toggleMute} className="text-white hover:text-[#F5C400] transition-colors">
+          <button type="button" title={muted ? "Ativar som" : "Silenciar"} onClick={toggleMute} className="text-white hover:text-[#F5C400] transition-colors">
             {muted ? <VolumeX size={18} /> : <Volume2 size={18} />}
           </button>
           <span className="text-zinc-400 text-xs font-mono">
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
           <div className="flex-1" />
-          <button type="button" onClick={enterFullscreen} className="text-white hover:text-[#F5C400] transition-colors">
+          <button type="button" title="Tela cheia" onClick={enterFullscreen} className="text-white hover:text-[#F5C400] transition-colors">
             <Maximize size={16} />
           </button>
         </div>

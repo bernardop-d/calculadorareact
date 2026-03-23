@@ -60,7 +60,7 @@ export async function GET(
     .jpeg({ quality: 92 })
     .toBuffer();
 
-  return new NextResponse(watermarked, {
+  return new Response(new Uint8Array(watermarked), {
     headers: {
       "Content-Type": "image/jpeg",
       "Content-Disposition": `inline; filename="${media.filename}"`,

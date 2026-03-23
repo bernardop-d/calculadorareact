@@ -54,6 +54,9 @@ body {
 .watermark-tile-4  { top: 75%; left: 5%;  transform: rotate(-25deg); }
 .watermark-tile-5  { top: 90%; left: 40%; transform: rotate(-25deg); }
 
+/* Video progress bar — width driven by --vp custom property */
+.video-progress { width: var(--vp, 0%); }
+
 /* Media protection */
 img, video {
   -webkit-user-drag: none;

@@ -25,7 +25,7 @@ const ADMIN_PATHS = ["/admin"];
 const PROTECTED_PATHS = ["/dashboard", "/payment", "/content", "/profile"];
 const AUTH_PATHS = ["/login", "/register"];
 
-export function proxy(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Arquivos estáticos e internos do Next.js — passa direto
