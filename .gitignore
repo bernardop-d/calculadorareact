@@ -38,7 +38,15 @@ yarn-error.log*
 
 # local credentials
 CREDENCIAIS.md
+
+# local database (SQLite dev)
 dev.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# local media uploads
+/public/uploads/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
