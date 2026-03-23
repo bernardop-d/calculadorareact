@@ -3,9 +3,19 @@ import { prisma } from "@/lib/db";
 import { comparePasswords, signToken } from "@/lib/auth";
 import { loginSchema } from "@/lib/validations";
 import { cookies } from "next/headers";
+import { rateLimit } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+    const { allowed } = rateLimit(`login:${ip}`, 10, 15 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente em 15 minutos." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const parsed = loginSchema.safeParse(body);
 

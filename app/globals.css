@@ -45,3 +45,26 @@ body {
   top: calc(25% - 2rem);
   background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.8));
 }
+
+/* Watermark tiles */
+.watermark-tile-0  { top: 15%; left: 5%;  transform: rotate(-25deg); }
+.watermark-tile-1  { top: 30%; left: 40%; transform: rotate(-25deg); }
+.watermark-tile-2  { top: 45%; left: 5%;  transform: rotate(-25deg); }
+.watermark-tile-3  { top: 60%; left: 40%; transform: rotate(-25deg); }
+.watermark-tile-4  { top: 75%; left: 5%;  transform: rotate(-25deg); }
+.watermark-tile-5  { top: 90%; left: 40%; transform: rotate(-25deg); }
+
+/* Media protection */
+img, video {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+.protected-content {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* Block print — hides all content if user tries Ctrl+P */
+@media print {
+  body { display: none !important; }
+}

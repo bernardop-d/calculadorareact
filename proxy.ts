@@ -1,54 +1,72 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyToken } from "@/lib/auth";
 
-const AUTH_PATHS = ["/login", "/register"];
-const PROTECTED_PATHS = ["/dashboard", "/content", "/profile", "/payment"];
+interface JWTPayload {
+  userId: string;
+  email: string;
+  role: string;
+  exp: number;
+}
+
+/** Decodifica o payload do JWT sem verificar assinatura (usado só para roteamento).
+ *  A verificação real da assinatura acontece em getAuthUser() em cada API route. */
+function decodeToken(token: string): JWTPayload | null {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = JSON.parse(atob(parts[1].replace(/-/g, "+").replace(/_/g, "/")));
+    if (!payload.exp || Date.now() / 1000 > payload.exp) return null;
+    return payload as JWTPayload;
+  } catch {
+    return null;
+  }
+}
+
 const ADMIN_PATHS = ["/admin"];
+const PROTECTED_PATHS = ["/dashboard", "/payment", "/content", "/profile"];
+const AUTH_PATHS = ["/login", "/register"];
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // Skip static files and API routes (API routes handle their own auth)
+  // Arquivos estáticos e internos do Next.js — passa direto
   if (
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api/webhooks") ||
-    pathname.startsWith("/uploads") ||
-    pathname.includes(".")
+    pathname.startsWith("/_next/") ||
+    pathname.startsWith("/favicon") ||
+    pathname.match(/\.(png|jpg|jpeg|gif|svg|ico|webp|mp4|webm|woff2?)$/)
   ) {
     return NextResponse.next();
   }
 
   const token = req.cookies.get("auth_token")?.value;
-  const payload = token ? verifyToken(token) : null;
+  const payload = token ? decodeToken(token) : null;
 
-  // Redirect logged-in users away from auth pages
-  if (payload && AUTH_PATHS.some((p) => pathname.startsWith(p))) {
-    const redirectTo = payload.role === "ADMIN" ? "/admin" : "/dashboard";
-    return NextResponse.redirect(new URL(redirectTo, req.url));
-  }
-
-  // Protect admin routes
+  // Rotas de admin — exige token + role ADMIN
   if (ADMIN_PATHS.some((p) => pathname.startsWith(p))) {
-    if (!payload) {
-      return NextResponse.redirect(new URL("/login?redirect=/admin", req.url));
-    }
-    if (payload.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/dashboard", req.url));
-    }
+    if (!payload) return NextResponse.redirect(new URL("/login", req.url));
+    if (payload.role !== "ADMIN") return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.next();
   }
 
-  // Protect user routes
+  // Rotas protegidas — exige login
   if (PROTECTED_PATHS.some((p) => pathname.startsWith(p))) {
     if (!payload) {
-      return NextResponse.redirect(
-        new URL(`/login?redirect=${pathname}`, req.url)
-      );
+      const url = new URL("/login", req.url);
+      url.searchParams.set("next", pathname);
+      return NextResponse.redirect(url);
     }
+    return NextResponse.next();
+  }
+
+  // Usuário já logado tentando acessar login/register → redireciona
+  if (payload && AUTH_PATHS.includes(pathname)) {
+    return NextResponse.redirect(
+      new URL(payload.role === "ADMIN" ? "/admin" : "/dashboard", req.url)
+    );
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };

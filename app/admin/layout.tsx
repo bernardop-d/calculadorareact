@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle } from "lucide-react";
+import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -14,6 +14,7 @@ const NAV_ITEMS = [
   { href: "/admin/messages", label: "Mensagens", icon: MessageCircle },
   { href: "/admin/users", label: "Usuários", icon: Users },
   { href: "/admin/payments", label: "Pagamentos", icon: CreditCard },
+  { href: "/admin/security", label: "Segurança", icon: ShieldAlert },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -29,13 +30,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!user || !isAdmin) return;
     const fetchUnread = () => {
-      fetch("/api/admin/stats")
+      fetch("/api/admin/unread-count")
         .then((r) => r.json())
-        .then((d) => setUnreadMessages(d.unreadMessages ?? 0))
+        .then((d) => setUnreadMessages(d.count ?? 0))
         .catch(() => {});
     };
     fetchUnread();
-    const interval = setInterval(fetchUnread, 15000);
+    const interval = setInterval(fetchUnread, 60000);
     return () => clearInterval(interval);
   }, [user, isAdmin]);
 

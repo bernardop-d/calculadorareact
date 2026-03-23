@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -84,9 +85,9 @@ function DashboardContent() {
     fetch("/api/payments/history")
       .then((r) => r.json())
       .then((d) => setPayments(d.payments ?? []));
-    fetch("/api/admin/messages")
+    fetch("/api/messages/unread-count")
       .then((r) => r.json())
-      .then((d) => setUnreadMessages(d.totalUnread ?? 0))
+      .then((d) => setUnreadMessages(d.count ?? 0))
       .catch(() => {});
   }, [loading, user, loadPosts]);
 
@@ -218,27 +219,33 @@ function DashboardContent() {
                             {/* Partial preview: top 25% visible, rest blurred */}
                             {post.locked ? (
                               <div className="relative w-full h-full">
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                                <Image
                                   src={post.thumbnail}
                                   alt={post.title}
-                                  className="absolute inset-0 w-full h-full object-cover clip-top-25"
+                                  fill
+                                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                  className="object-cover clip-top-25"
+                                  unoptimized={post.thumbnail.startsWith("http")}
                                 />
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img
+                                <Image
                                   src={post.thumbnail}
                                   alt=""
                                   aria-hidden="true"
-                                  className="absolute inset-0 w-full h-full object-cover blur-xl scale-110 brightness-75 clip-bottom-75"
+                                  fill
+                                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                  className="object-cover blur-xl scale-110 brightness-75 clip-bottom-75"
+                                  unoptimized={post.thumbnail.startsWith("http")}
                                 />
                                 <div className="absolute left-0 right-0 h-8 preview-fade" />
                               </div>
                             ) : (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
+                              <Image
                                 src={post.thumbnail}
                                 alt={post.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                fill
+                                sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                unoptimized={post.thumbnail.startsWith("http")}
                               />
                             )}
                           </>

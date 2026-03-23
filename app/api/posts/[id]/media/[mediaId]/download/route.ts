@@ -35,7 +35,9 @@ export async function GET(
     return new NextResponse(file, {
       headers: {
         "Content-Type": media.type,
-        "Content-Disposition": `attachment; filename="${media.filename}"`,
+        "Content-Disposition": `inline; filename="${media.filename}"`,
+        "Cache-Control": "no-store, no-cache, must-revalidate",
+        "X-Robots-Tag": "noindex",
       },
     });
   }
@@ -61,7 +63,9 @@ export async function GET(
   return new NextResponse(watermarked, {
     headers: {
       "Content-Type": "image/jpeg",
-      "Content-Disposition": `attachment; filename="${media.filename}"`,
+      "Content-Disposition": `inline; filename="${media.filename}"`,
+      "Cache-Control": "no-store, no-cache, must-revalidate",
+      "X-Robots-Tag": "noindex",
     },
   });
 }

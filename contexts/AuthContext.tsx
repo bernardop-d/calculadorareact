@@ -8,6 +8,7 @@ import {
   useCallback,
   ReactNode,
 } from "react";
+import { flushSync } from "react-dom";
 import { useRouter } from "next/navigation";
 
 interface UserSubscription {
@@ -75,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     const data = await res.json();
-    setUser(data.user);
+    flushSync(() => {
+      setUser(data.user);
+    });
 
     if (data.user.role === "ADMIN") {
       router.push("/admin");

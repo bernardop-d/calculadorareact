@@ -103,7 +103,7 @@ export default function ProfilePage() {
               onClick={() => setShowTip(true)}
             >
               <Heart size={15} className="mr-2" />
-              Mandar gorjeta
+              Mandar um mimo
             </Button>
           </div>
         </div>

@@ -17,15 +17,20 @@ export async function GET(_req: NextRequest) {
       : undefined,
   });
 
-  return NextResponse.json({
-    stories: stories.map((s) => ({
-      id: s.id,
-      mediaUrl: s.mediaUrl,
-      mediaType: s.mediaType,
-      caption: s.caption,
-      expiresAt: s.expiresAt,
-      createdAt: s.createdAt,
-      viewed: user ? (s.views?.length ?? 0) > 0 : false,
-    })),
-  });
+  return NextResponse.json(
+    {
+      stories: stories.map((s) => ({
+        id: s.id,
+        mediaUrl: s.mediaUrl,
+        mediaType: s.mediaType,
+        caption: s.caption,
+        expiresAt: s.expiresAt,
+        createdAt: s.createdAt,
+        viewed: user ? (s.views?.length ?? 0) > 0 : false,
+      })),
+    },
+    {
+      headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" },
+    }
+  );
 }

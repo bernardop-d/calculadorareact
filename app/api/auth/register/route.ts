@@ -3,9 +3,19 @@ import { prisma } from "@/lib/db";
 import { hashPassword, signToken } from "@/lib/auth";
 import { registerSchema } from "@/lib/validations";
 import { cookies } from "next/headers";
+import { rateLimit } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
   try {
+    const ip = req.headers.get("x-forwarded-for")?.split(",")[0] ?? "unknown";
+    const { allowed } = rateLimit(`register:${ip}`, 5, 60 * 60 * 1000);
+    if (!allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas de cadastro. Tente novamente em 1 hora." },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const parsed = registerSchema.safeParse(body);
 
@@ -35,6 +45,7 @@ export async function POST(req: NextRequest) {
         name,
         birthDate: new Date(birthDate),
         ageVerified: true,
+        termsAcceptedAt: new Date(),
       },
     });
 

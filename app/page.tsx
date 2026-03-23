@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import Button from "@/components/ui/Button";
 import { Crown, Lock, Play, Eye, Flame, ChevronDown } from "lucide-react";
 
@@ -10,12 +11,14 @@ export default function HomePage() {
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
 
         {/* Creator photo — atmospheric */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/creator.jpg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-top scale-110 hero-bg-image"
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-top scale-110 hero-bg-image"
         />
 
         {/* Multi-layer overlays for depth */}
@@ -90,12 +93,13 @@ export default function HomePage() {
               >
                 {/* Blurred placeholder */}
                 <div className="absolute inset-0 bg-gradient-to-br from-zinc-800/60 to-zinc-900/80" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/creator.jpg"
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover object-top blur-xl scale-110 opacity-40 group-hover:opacity-60 transition-opacity duration-300"
+                  fill
+                  sizes="288px"
+                  className="object-cover object-top blur-xl scale-110 opacity-40 group-hover:opacity-60 transition-opacity duration-300"
                 />
 
                 {/* Lock overlay */}
@@ -177,12 +181,13 @@ export default function HomePage() {
                 className="relative aspect-[3/4] bg-zinc-900 rounded-xl sm:rounded-2xl overflow-hidden group cursor-pointer"
               >
                 {/* Blurred creator image */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/creator.jpg"
                   alt=""
                   aria-hidden="true"
-                  className="absolute inset-0 w-full h-full object-cover object-top blur-2xl scale-125 opacity-50"
+                  fill
+                  sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  className="object-cover object-top blur-2xl scale-125 opacity-50"
                 />
 
                 {/* Dark overlay */}
@@ -348,12 +353,13 @@ export default function HomePage() {
       {/* ═══════════════════════════════ FINAL CTA ═══════════════════════════════ */}
       <section className="relative py-28 px-6 overflow-hidden">
         {/* Background */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/creator.jpg"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-top hero-bg-image"
+          fill
+          sizes="100vw"
+          className="object-cover object-top hero-bg-image"
         />
         <div className="absolute inset-0 bg-[#080808]/88" />
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(245,196,0,0.08)_0%,_transparent_65%)]" />

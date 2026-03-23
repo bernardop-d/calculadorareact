@@ -11,6 +11,7 @@ import { CheckCircle } from "lucide-react";
 
 export default function ForgotPasswordPage() {
   const [sent, setSent] = useState(false);
+  const [serverError, setServerError] = useState("");
 
   const {
     register,
@@ -21,11 +22,16 @@ export default function ForgotPasswordPage() {
   });
 
   async function onSubmit(data: ForgotPasswordInput) {
-    await fetch("/api/auth/forgot-password", {
+    setServerError("");
+    const res = await fetch("/api/auth/forgot-password", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(data),
     });
+    if (!res.ok) {
+      setServerError("Erro ao enviar email. Verifique a configuração de SMTP.");
+      return;
+    }
     setSent(true);
   }
 
@@ -64,6 +70,12 @@ export default function ForgotPasswordPage() {
                 error={errors.email?.message}
                 {...register("email")}
               />
+
+              {serverError && (
+                <div className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-sm text-red-400 text-center">
+                  {serverError}
+                </div>
+              )}
 
               <Button type="submit" loading={isSubmitting} className="w-full" size="lg">
                 Enviar link
