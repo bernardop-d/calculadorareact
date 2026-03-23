@@ -9,8 +9,9 @@ const FULLSCREEN_PATHS = ["/login", "/register"];
 export default function ConditionalNav() {
   const pathname = usePathname();
   const isFullscreen = FULLSCREEN_PATHS.includes(pathname);
+  const isAdmin = pathname.startsWith("/admin");
 
-  if (isFullscreen) return null;
+  if (isFullscreen || isAdmin) return null;
 
   return (
     <>

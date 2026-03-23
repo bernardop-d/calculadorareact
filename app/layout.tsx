@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 import ConditionalNav from "@/components/ConditionalNav";
 
 const geist = Geist({
@@ -21,11 +22,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="pt-BR" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full bg-[#080808] text-white">
-        <AuthProvider>
-          <ConditionalNav />
-          {children}
-        </AuthProvider>
+      <body className="min-h-full text-white">
+        <ThemeProvider>
+          <AuthProvider>
+            <ConditionalNav />
+            {children}
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

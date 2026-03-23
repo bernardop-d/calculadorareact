@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import Button from "./ui/Button";
 import { useState } from "react";
-import { Menu, X, Crown } from "lucide-react";
+import { Menu, X, Crown, Sun, Moon } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout, isSubscribed, isAdmin } = useAuth();
+  const { theme, toggle } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black/60 backdrop-blur-xl border-b border-white/5">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="w-full px-6 sm:px-10">
         <div className="flex items-center justify-between h-16">
 
           {/* Logo */}
@@ -28,6 +30,14 @@ export default function Navbar() {
 
           {/* Desktop */}
           <div className="hidden md:flex items-center gap-3">
+            <button
+              type="button"
+              onClick={toggle}
+              title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+              className="p-2 rounded-lg text-zinc-400 hover:text-white transition-colors"
+            >
+              {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
             {user ? (
               <>
                 {!isAdmin && (

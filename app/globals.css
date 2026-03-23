@@ -9,10 +9,45 @@
   --border: rgba(255, 255, 255, 0.08);
 }
 
+[data-theme="light"] {
+  --background: #f5f5f5;
+  --foreground: #0a0a0a;
+  --card: rgba(0, 0, 0, 0.04);
+  --border: rgba(0, 0, 0, 0.1);
+
+  /* Flip zinc scale so dark classes become light in light mode */
+  --color-zinc-50:  #09090b;
+  --color-zinc-100: #18181b;
+  --color-zinc-200: #27272a;
+  --color-zinc-300: #3f3f46;
+  --color-zinc-400: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-600: #a1a1aa;
+  --color-zinc-700: #d4d4d8;
+  --color-zinc-800: #e4e4e7;
+  --color-zinc-900: #f4f4f5;
+  --color-zinc-950: #fafafa;
+
+  /* Swap white/black so text-white = dark and bg-black = light */
+  --color-white: #0a0a0a;
+  --color-black: #f5f5f5;
+}
+
 body {
   background-color: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist);
+}
+
+/* Light mode: fix hardcoded dark backgrounds that don't use CSS variables */
+[data-theme="light"] aside {
+  background-color: #ebebeb !important;
+}
+[data-theme="light"] .admin-main {
+  background-color: var(--background) !important;
+}
+[data-theme="light"] .admin-topbar {
+  border-color: rgba(0,0,0,0.06) !important;
 }
 
 /* Custom scrollbar */
@@ -26,6 +61,8 @@ body {
   background: #333;
   border-radius: 3px;
 }
+[data-theme="light"] ::-webkit-scrollbar-track { background: #e0e0e0; }
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: #aaaaaa; }
 
 /* Gold glow utility */
 .glow-gold {

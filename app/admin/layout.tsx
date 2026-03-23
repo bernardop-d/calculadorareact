@@ -4,8 +4,9 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert } from "lucide-react";
+import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/contexts/ThemeContext";
 
 const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
@@ -19,6 +20,7 @@ const NAV_ITEMS = [
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { user, loading, logout, isAdmin } = useAuth();
+  const { theme, toggle } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
   const [unreadMessages, setUnreadMessages] = useState(0);
@@ -45,21 +47,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   return (
     <div className="flex min-h-[calc(100vh-4rem)]">
       {/* Sidebar */}
-      <aside className="w-60 bg-black/60 border-r border-white/5 hidden md:flex flex-col">
-        <div className="p-5 border-b border-white/5">
-          <div className="flex items-center gap-2.5 mb-3">
-            <div className="w-7 h-7 bg-[#F5C400]/10 border border-[#F5C400]/30 rounded-lg flex items-center justify-center">
-              <Crown size={13} className="text-[#F5C400]" />
+      <aside className="w-64 hidden md:flex flex-col bg-[#0a0a0a] border-r border-white/[0.06]">
+
+        {/* Profile header */}
+        <div className="px-5 py-6">
+          <div className="flex items-center gap-3 mb-1">
+            <div className="w-9 h-9 rounded-xl bg-[#F5C400]/10 border border-[#F5C400]/30 flex items-center justify-center shrink-0">
+              <Crown size={15} className="text-[#F5C400]" />
             </div>
-            <span className="text-sm font-bold">
-              <span className="text-white">Queen </span>
-              <span className="text-[#F5C400]">Rayalla</span>
-            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-bold leading-tight">
+                <span className="text-white">Queen </span>
+                <span className="text-[#F5C400]">Rayalla</span>
+              </p>
+              <p className="text-[11px] text-zinc-600 truncate mt-0.5">{user.email}</p>
+            </div>
           </div>
-          <p className="text-xs text-zinc-600 truncate">{user.email}</p>
+          <div className="mt-4 flex items-center gap-1.5 px-2 py-1 rounded-md bg-[#F5C400]/5 border border-[#F5C400]/10 w-fit">
+            <div className="w-1.5 h-1.5 rounded-full bg-[#F5C400] animate-pulse" />
+            <span className="text-[10px] text-[#F5C400]/70 font-medium tracking-wide uppercase">Admin</span>
+          </div>
         </div>
 
-        <nav className="flex-1 p-3 space-y-0.5">
+        {/* Divider */}
+        <div className="mx-4 h-px bg-white/[0.05]" />
+
+        {/* Nav */}
+        <nav className="flex-1 px-3 py-4 space-y-0.5">
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon;
             const active =
@@ -72,39 +86,55 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all",
+                  "group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all duration-150",
                   active
                     ? "bg-[#F5C400]/10 text-[#F5C400] font-semibold"
-                    : "text-zinc-500 hover:text-white hover:bg-white/5"
+                    : "text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.04]"
                 )}
               >
-                <Icon size={15} />
-                <span className="flex-1">{item.label}</span>
+                <Icon size={16} className={cn("shrink-0 transition-colors", active ? "text-[#F5C400]" : "text-zinc-600 group-hover:text-zinc-400")} />
+                <span className="flex-1 tracking-tight">{item.label}</span>
                 {badge > 0 && (
-                  <span className="w-5 h-5 bg-[#F5C400] rounded-full text-black text-[10px] font-black flex items-center justify-center">
+                  <span className="min-w-[18px] h-[18px] px-1 bg-[#F5C400] rounded-full text-black text-[10px] font-black flex items-center justify-center">
                     {badge > 9 ? "9+" : badge}
                   </span>
                 )}
+                {active && <div className="w-1 h-1 rounded-full bg-[#F5C400]/60" />}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-3 border-t border-white/5">
+        {/* Footer */}
+        <div className="mx-4 h-px bg-white/[0.05]" />
+        <div className="px-3 py-4">
           <button
             type="button"
             onClick={logout}
-            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-500 hover:text-white hover:bg-white/5 w-full transition-all"
+            className="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-zinc-600 hover:text-red-400 hover:bg-red-500/5 w-full transition-all duration-150"
           >
-            <LogOut size={15} />
-            Sair
+            <LogOut size={16} className="shrink-0 group-hover:text-red-400 transition-colors" />
+            <span>Sair</span>
           </button>
         </div>
       </aside>
 
       {/* Main */}
-      <div className="flex-1 overflow-auto bg-[#080808]">
-        {children}
+      <div className="admin-main flex-1 flex flex-col overflow-hidden bg-[#080808]">
+        {/* Top bar */}
+        <div className="admin-topbar flex items-center justify-end px-6 lg:px-8 h-14 border-b border-white/[0.04] shrink-0">
+          <button
+            type="button"
+            onClick={toggle}
+            title={theme === "dark" ? "Modo claro" : "Modo escuro"}
+            className="p-2 rounded-lg text-zinc-600 hover:text-zinc-300 hover:bg-white/[0.04] transition-all duration-150"
+          >
+            {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+          </button>
+        </div>
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
       </div>
     </div>
   );
