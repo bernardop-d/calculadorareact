@@ -17,10 +17,12 @@ export default function StoriesBar() {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch("/api/stories")
+    const controller = new AbortController();
+    fetch("/api/stories", { signal: controller.signal })
       .then((r) => r.json())
       .then((d) => setStories(d.stories ?? []))
-      .catch(() => {});
+      .catch((e) => { if (e.name !== "AbortError") console.error(e); });
+    return () => controller.abort();
   }, []);
 
   function markViewed(id: string) {

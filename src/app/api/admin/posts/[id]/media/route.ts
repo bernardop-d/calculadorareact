@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { uploadToR2, deleteFromR2, isR2Configured } from "@/lib/storage";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
+import { storage, isRemoteStorage } from "@/lib/storage";
 
 async function requireAdmin() {
   const user = await getAuthUser();
@@ -30,31 +28,16 @@ export async function POST(
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    const buffer = Buffer.from(await file.arrayBuffer());
     const type = file.type.startsWith("video/") ? "VIDEO" : "IMAGE";
 
-    let url: string;
-    let storageKey: string | null = null;
-
-    if (isR2Configured()) {
-      // Upload para Cloudflare R2
-      storageKey = await uploadToR2(buffer, file.name, file.type, `posts/${postId}`);
-      url = storageKey; // Guardamos a key; a URL assinada é gerada na leitura
-    } else {
-      // Fallback: disco local (desenvolvimento)
-      const uploadDir = path.join(process.cwd(), "public", "uploads", postId);
-      await mkdir(uploadDir, { recursive: true });
-      const ext = path.extname(file.name);
-      const filename = `${Date.now()}-${i}${ext}`;
-      await writeFile(path.join(uploadDir, filename), buffer);
-      url = `/uploads/${postId}/${filename}`;
-    }
+    // storage.upload returns a key (R2) or a /uploads/... path (local)
+    const key = await storage.upload(buffer, file.name, file.type, `posts/${postId}`);
 
     const media = await prisma.media.create({
       data: {
         postId,
-        url,
+        url: key,
         type,
         filename: file.name,
         size: file.size,
@@ -79,8 +62,8 @@ export async function DELETE(
 
   const media = await prisma.media.findUnique({ where: { id: mediaId, postId } });
 
-  if (media && isR2Configured() && !media.url.startsWith("/uploads/")) {
-    await deleteFromR2(media.url).catch(() => {});
+  if (media && isRemoteStorage()) {
+    await storage.delete(media.url).catch(() => {});
   }
 
   await prisma.media.delete({ where: { id: mediaId, postId } });

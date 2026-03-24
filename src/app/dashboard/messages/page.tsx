@@ -41,7 +41,6 @@ export default function MessagesPage() {
     fetchMessages();
     const interval = setInterval(fetchMessages, 5000);
     return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   async function send(e: React.FormEvent) {
@@ -99,7 +98,7 @@ export default function MessagesPage() {
               <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                 isMine
                   ? "bg-[#F5C400] text-black rounded-br-sm"
-                  : "bg-white/[0.06] text-white rounded-bl-sm"
+                  : "bg-white/6 text-white rounded-bl-sm"
               }`}>
                 <p className="text-sm leading-relaxed">{msg.body}</p>
                 <p className={`text-[10px] mt-1 ${isMine ? "text-black/50" : "text-zinc-600"}`}>

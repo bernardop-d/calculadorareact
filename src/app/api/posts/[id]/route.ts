@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, isSubscriptionActive } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getSignedMediaUrl, isR2Configured } from "@/lib/storage";
+import { getSignedMediaUrl, isRemoteStorage } from "@/lib/storage";
 
 async function signMedia(media: { url: string }[]) {
-  if (!isR2Configured()) return media;
+  if (!isRemoteStorage()) return media;
   return Promise.all(
     media.map(async (m) => ({
       ...m,

@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, isSubscriptionActive } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getSignedMediaUrl, isR2Configured } from "@/lib/storage";
+import { getSignedMediaUrl, isRemoteStorage } from "@/lib/storage";
 
 async function resolveUrl(url: string, locked: boolean): Promise<string | null> {
   if (!url) return null;
   if (locked) return url; // Não assina URL de conteúdo bloqueado
-  if (!isR2Configured() || url.startsWith("/")) return url; // URL local
+  if (!isRemoteStorage() || url.startsWith("/")) return url; // URL local
   return getSignedMediaUrl(url, 3600);
 }
 

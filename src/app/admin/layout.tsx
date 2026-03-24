@@ -45,7 +45,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (loading || !user) return null;
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)]">
+    <div className="flex min-h-[100vh]">
       {/* Sidebar */}
       <aside className="w-64 hidden md:flex flex-col bg-[#0a0a0a] border-r border-white/[0.06]">
 
