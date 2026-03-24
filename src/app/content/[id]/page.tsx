@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
+import NextImage from "next/image";
 import { ArrowLeft, Image as ImageIcon, Play } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
@@ -136,11 +137,13 @@ export default function ContentPage() {
               onContextMenu={handleContextMenu}
               onDragStart={(e) => e.preventDefault()}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <NextImage
                 src={currentMedia.url}
                 alt={post.title}
-                className="w-full max-h-[600px] object-contain pointer-events-none select-none"
+                fill
+                sizes="100vw"
+                unoptimized
+                className="object-contain pointer-events-none select-none !max-h-[600px]"
                 draggable={false}
               />
 
@@ -187,11 +190,13 @@ export default function ContentPage() {
                   <Play size={16} className="text-zinc-400" />
                 </div>
               ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
+                <NextImage
                   src={m.url}
                   alt=""
-                  className="w-full h-full object-cover pointer-events-none select-none"
+                  fill
+                  sizes="128px"
+                  unoptimized
+                  className="object-cover pointer-events-none select-none"
                   draggable={false}
                 />
               )}

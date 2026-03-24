@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import StoryViewer from "./StoryViewer";
-import { Plus } from "lucide-react";
 
 interface Story {
   id: string;
@@ -43,12 +43,13 @@ export default function StoriesBar() {
             className="flex flex-col items-center gap-1.5 shrink-0"
           >
             <div className={`w-16 h-16 rounded-full p-0.5 ${story.viewed ? "bg-zinc-700" : "bg-gradient-to-tr from-[#F5C400] to-[#FF6B6B]"}`}>
-              <div className="w-full h-full rounded-full overflow-hidden bg-zinc-900 border-2 border-[#080808]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+              <div className="relative w-full h-full rounded-full overflow-hidden bg-zinc-900 border-2 border-[#080808]">
+                <Image
                   src={story.mediaUrl}
                   alt=""
-                  className="w-full h-full object-cover"
+                  fill
+                  sizes="64px"
+                  className="object-cover"
                 />
               </div>
             </div>

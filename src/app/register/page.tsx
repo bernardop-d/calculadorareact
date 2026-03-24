@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Crown, Eye, EyeOff, Flame, Lock } from "lucide-react";
@@ -45,11 +46,13 @@ export default function RegisterPage() {
 
       {/* ── LEFT — Creator photo ── */}
       <div className="hidden lg:block lg:w-[58%] relative overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/creator.jpg"
           alt="Queen Rayalla"
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          fill
+          sizes="58vw"
+          className="object-cover object-top"
+          priority
         />
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-[#080808]/95" />

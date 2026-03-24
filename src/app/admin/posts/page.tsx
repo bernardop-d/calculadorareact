@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import Button from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import {
@@ -431,8 +432,9 @@ export default function AdminPostsPage() {
               <CardContent className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-4 min-w-0">
                   {post.media[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.media[0].url} alt="" className="w-12 h-12 object-cover rounded-lg shrink-0" />
+                    <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
+                      <Image src={post.media[0].url} alt="" fill sizes="48px" className="object-cover" />
+                    </div>
                   ) : (
                     <div className="w-12 h-12 bg-zinc-800 rounded-lg shrink-0 flex items-center justify-center">
                       <ImageIcon size={18} className="text-zinc-600" />

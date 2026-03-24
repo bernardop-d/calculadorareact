@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Send, ArrowLeft } from "lucide-react";
@@ -74,9 +75,8 @@ export default function MessagesPage() {
         <Link href="/dashboard" className="text-zinc-500 hover:text-white transition-colors">
           <ArrowLeft size={20} />
         </Link>
-        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#F5C400]/10 border border-[#F5C400]/30 flex items-center justify-center shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/creator.jpg" alt="" className="w-full h-full object-cover object-top" />
+        <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[#F5C400]/10 border border-[#F5C400]/30 shrink-0">
+          <Image src="/creator.jpg" alt="" fill sizes="36px" className="object-cover object-top" />
         </div>
         <div>
           <p className="text-white font-bold text-sm">Queen Rayalla</p>

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import Link from "next/link";
 import { Crown, Lock, Eye, EyeOff, Flame } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -35,11 +36,13 @@ export default function LoginPage() {
 
       {/* ── LEFT — Creator photo ── */}
       <div className="hidden lg:block lg:w-[58%] relative overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/creator.jpg"
           alt="Queen Rayalla"
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          fill
+          sizes="58vw"
+          className="object-cover object-top"
+          priority
         />
 
         {/* Subtle vignette — keep photo visible */}

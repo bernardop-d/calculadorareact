@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import { Trash2, Upload, Clock } from "lucide-react";
@@ -100,12 +101,11 @@ export default function AdminStoriesPage() {
             const expired = isExpired(story.expiresAt);
             return (
               <div key={story.id} className={`relative rounded-xl overflow-hidden bg-zinc-900 ${expired ? "opacity-40" : ""}`}>
-                <div className="aspect-square">
+                <div className="relative aspect-square">
                   {story.mediaType === "VIDEO" ? (
                     <video src={story.mediaUrl} className="w-full h-full object-cover" muted />
                   ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={story.mediaUrl} alt="" className="w-full h-full object-cover" />
+                    <Image src={story.mediaUrl} alt="" fill sizes="(max-width: 640px) 50vw, 25vw" className="object-cover" />
                   )}
                 </div>
 

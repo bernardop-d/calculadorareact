@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import TipModal from "@/components/TipModal";
@@ -51,17 +52,15 @@ export default function ProfilePage() {
       <div className="relative">
         {/* Banner */}
         <div className="h-48 sm:h-64 relative overflow-hidden">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/creator.jpg" alt="" className="w-full h-full object-cover object-top hero-bg-image scale-110" />
+          <Image src="/creator.jpg" alt="" fill sizes="100vw" className="object-cover object-top hero-bg-image scale-110" priority />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#080808]" />
         </div>
 
         {/* Avatar + info */}
         <div className="max-w-3xl mx-auto px-6">
           <div className="flex flex-col sm:flex-row sm:items-end gap-4 -mt-12 relative z-10">
-            <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#F5C400]/40 shrink-0">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={data.avatarUrl} alt={data.name} className="w-full h-full object-cover object-top" />
+            <div className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-[#F5C400]/40 shrink-0">
+              <Image src={data.avatarUrl} alt={data.name} fill sizes="96px" className="object-cover object-top" />
             </div>
             <div className="flex-1 pb-1">
               <div className="flex items-center gap-2 mb-1">
@@ -120,18 +119,20 @@ export default function ProfilePage() {
               <div className="relative aspect-square rounded-xl overflow-hidden group bg-zinc-900">
                 {post.thumbnail ? (
                   <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={post.thumbnail}
                       alt={post.title}
-                      className="w-full h-full object-cover clip-top-25"
+                      fill
+                      sizes="(max-width: 640px) 50vw, 33vw"
+                      className="object-cover clip-top-25"
                     />
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
+                    <Image
                       src={post.thumbnail}
                       alt=""
-                      aria-hidden="true"
-                      className="absolute inset-0 w-full h-full object-cover blur-2xl scale-110 brightness-50 clip-bottom-75"
+                      aria-hidden
+                      fill
+                      sizes="(max-width: 640px) 50vw, 33vw"
+                      className="object-cover blur-2xl scale-110 brightness-50 clip-bottom-75"
                     />
                     <div className="absolute left-0 right-0 h-8 preview-fade" />
                   </>

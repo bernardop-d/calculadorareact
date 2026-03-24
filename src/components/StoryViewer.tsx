@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface Story {
@@ -94,11 +95,12 @@ export default function StoryViewer({ stories, initialIndex, onClose, onView }: 
             className="w-full h-full object-contain"
           />
         ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={current.mediaUrl}
             alt=""
-            className="w-full h-full object-contain"
+            fill
+            sizes="100vw"
+            className="object-contain"
           />
         )}
 
