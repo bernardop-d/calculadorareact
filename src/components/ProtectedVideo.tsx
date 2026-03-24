@@ -54,6 +54,7 @@ export default function ProtectedVideo({ src, watermark }: Props) {
   const [duration, setDuration]         = useState(0);
   const [showControls, setShowControls] = useState(true);
   const [glReady, setGlReady]           = useState(false);
+  const [glFailed, setGlFailed]         = useState(false);
 
   /* ── WebGL setup ──────────────────────────────────────────── */
   useEffect(() => {
@@ -121,8 +122,15 @@ export default function ProtectedVideo({ src, watermark }: Props) {
         if (can.height !== h) can.height = h;
         gl.viewport(0, 0, can.width, can.height);
         gl.bindTexture(gl.TEXTURE_2D, tex);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, vid);
-        gl.drawArrays(gl.TRIANGLES, 0, 6);
+        try {
+          gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, vid);
+          gl.drawArrays(gl.TRIANGLES, 0, 6);
+        } catch {
+          // Cross-origin video without CORS headers — fall back to direct render
+          cancelAnimationFrame(rafRef.current);
+          setGlFailed(true);
+          return;
+        }
       }
       rafRef.current = requestAnimationFrame(draw);
     };
@@ -194,11 +202,11 @@ export default function ProtectedVideo({ src, watermark }: Props) {
       onContextMenu={(e) => e.preventDefault()}
     >
       {/* Hidden video — source only, never rendered directly to screen */}
-      {/* eslint-disable-next-line jsx-a11y/media-has-caption */}
+      { }
       <video
         ref={videoRef}
         src={src}
-        className="absolute w-0 h-0 opacity-0 pointer-events-none"
+        className={glFailed ? "block w-full max-h-[600px]" : "absolute w-0 h-0 opacity-0 pointer-events-none"}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
         onEnded={() => { setPlaying(false); setShowControls(true); }}
@@ -207,13 +215,15 @@ export default function ProtectedVideo({ src, watermark }: Props) {
       />
 
       {/* WebGL canvas — rendered on GPU, appears black on most screenshots */}
-      <canvas
-        ref={canvasRef}
-        className="block w-full min-h-60 max-h-[600px] pointer-events-none"
-      />
+      {!glFailed && (
+        <canvas
+          ref={canvasRef}
+          className="block w-full min-h-60 max-h-[600px] pointer-events-none"
+        />
+      )}
 
       {/* Tiled watermark — positions defined in globals.css (.watermark-tile-N) */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {/* <div className="absolute inset-0 pointer-events-none overflow-hidden">
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <span
             key={i}
@@ -222,7 +232,7 @@ export default function ProtectedVideo({ src, watermark }: Props) {
             {watermark}
           </span>
         ))}
-      </div>
+      </div> */}
 
       {/* Click capture overlay */}
       <div

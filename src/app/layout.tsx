@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ConditionalNav from "@/components/ConditionalNav";
+import ReactQueryProvider from "@/lib/query-client";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -28,12 +29,14 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-full text-white" suppressHydrationWarning>
-        <ThemeProvider>
-          <AuthProvider>
-            <ConditionalNav />
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+        <ReactQueryProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ConditionalNav />
+              {children}
+            </AuthProvider>
+          </ThemeProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
 
 interface Story {
@@ -12,21 +13,28 @@ interface Story {
   viewed: boolean;
 }
 
-export default function StoriesBar() {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+async function fetchStories(): Promise<Story[]> {
+  const res = await fetch("/api/stories");
+  if (!res.ok) throw new Error("Failed to fetch stories");
+  const data = await res.json();
+  return data.stories ?? [];
+}
 
-  useEffect(() => {
-    const controller = new AbortController();
-    fetch("/api/stories", { signal: controller.signal })
-      .then((r) => r.json())
-      .then((d) => setStories(d.stories ?? []))
-      .catch((e) => { if (e.name !== "AbortError") console.error(e); });
-    return () => controller.abort();
-  }, []);
+export default function StoriesBar() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: stories = [] } = useQuery({
+    queryKey: ["stories"],
+    queryFn: fetchStories,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   function markViewed(id: string) {
-    setStories((prev) => prev.map((s) => s.id === id ? { ...s, viewed: true } : s));
+    queryClient.setQueryData<Story[]>(["stories"], (prev) =>
+      prev?.map((s) => (s.id === id ? { ...s, viewed: true } : s))
+    );
     fetch(`/api/stories/${id}/view`, { method: "POST" }).catch(() => {});
   }
 

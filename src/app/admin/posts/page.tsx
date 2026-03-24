@@ -433,7 +433,7 @@ export default function AdminPostsPage() {
                 <div className="flex items-center gap-4 min-w-0">
                   {post.media[0] ? (
                     <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
-                      <Image src={post.media[0].url} alt="" fill sizes="48px" className="object-cover" />
+                      {/* <Image src={post.media[0].url} alt="" fill sizes="48px" className="object-cover" /> */}
                     </div>
                   ) : (
                     <div className="w-12 h-12 bg-zinc-800 rounded-lg shrink-0 flex items-center justify-center">
