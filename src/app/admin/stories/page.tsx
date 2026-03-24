@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Image from "next/image";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import Button from "@/components/ui/Button";
 import { Trash2, Upload, Clock } from "lucide-react";
@@ -19,20 +20,18 @@ interface Story {
 
 export default function AdminStoriesPage() {
   const { user } = useAuth();
-  const [stories, setStories] = useState<Story[]>([]);
+  const queryClient = useQueryClient();
   const [file, setFile] = useState<File | null>(null);
   const [caption, setCaption] = useState("");
   const [uploading, setUploading] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const fetchStories = () => {
-    fetch("/api/admin/stories")
-      .then((r) => r.json())
-      .then((d) => { setStories(d.stories ?? []); setLoading(false); })
-      .catch(() => setLoading(false));
-  };
-
-  useEffect(() => { if (user) fetchStories(); }, [user]);
+  const { data: stories = [], isLoading: loading } = useQuery<Story[]>({
+    queryKey: ["admin-stories"],
+    queryFn: () => fetch("/api/admin/stories").then((r) => r.json()).then((d) => d.stories ?? []),
+    enabled: !!user,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   async function upload() {
     if (!file || uploading) return;
@@ -41,14 +40,14 @@ export default function AdminStoriesPage() {
     fd.append("file", file);
     if (caption) fd.append("caption", caption);
     const res = await fetch("/api/admin/stories", { method: "POST", body: fd });
-    if (res.ok) { setFile(null); setCaption(""); fetchStories(); }
+    if (res.ok) { setFile(null); setCaption(""); queryClient.invalidateQueries({ queryKey: ["admin-stories"] }); }
     setUploading(false);
   }
 
   async function deleteStory(id: string) {
     if (!confirm("Apagar este story?")) return;
     await fetch(`/api/admin/stories/${id}`, { method: "DELETE" });
-    fetchStories();
+    queryClient.invalidateQueries({ queryKey: ["admin-stories"] });
   }
 
   const isExpired = (expiresAt: string) => new Date(expiresAt) < new Date();
@@ -58,7 +57,7 @@ export default function AdminStoriesPage() {
       <h1 className="text-xl font-black text-white mb-6">Stories</h1>
 
       {/* Upload */}
-      <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 mb-8">
+      <div className="bg-white/3 border border-white/6 rounded-2xl p-5 mb-8">
         <h2 className="text-sm font-bold text-zinc-300 mb-4">Novo Story (expira em 24h)</h2>
         <div className="space-y-3">
           <label className="flex flex-col items-center gap-2 border-2 border-dashed border-white/10 hover:border-[#F5C400]/30 rounded-xl p-6 cursor-pointer transition-colors">
@@ -91,7 +90,7 @@ export default function AdminStoriesPage() {
       {/* Stories list */}
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => <div key={i} className="aspect-square bg-white/[0.03] rounded-xl animate-pulse" />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="aspect-square bg-white/3 rounded-xl animate-pulse" />)}
         </div>
       ) : stories.length === 0 ? (
         <p className="text-zinc-600 text-sm text-center py-12">Nenhum story ainda.</p>

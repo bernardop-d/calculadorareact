@@ -2,7 +2,8 @@
 
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert, Sun, Moon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -23,31 +24,27 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const { theme, toggle } = useTheme();
   const router = useRouter();
   const pathname = usePathname();
-  const [unreadMessages, setUnreadMessages] = useState(0);
-
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) router.replace("/login");
   }, [user, isAdmin, loading, router]);
 
-  useEffect(() => {
-    if (!user || !isAdmin) return;
-    const fetchUnread = () => {
-      fetch("/api/admin/unread-count")
-        .then((r) => r.json())
-        .then((d) => setUnreadMessages(d.count ?? 0))
-        .catch(() => {});
-    };
-    fetchUnread();
-    const interval = setInterval(fetchUnread, 60000);
-    return () => clearInterval(interval);
-  }, [user, isAdmin]);
+  const { data: unreadData } = useQuery<{ count: number }>({
+    queryKey: ["admin-unread-count"],
+    queryFn: () => fetch("/api/admin/unread-count").then((r) => r.json()),
+    enabled: !!user && !!isAdmin,
+    refetchInterval: 60_000,
+    staleTime: 0,
+    gcTime: 0,
+  });
+
+  const unreadMessages = unreadData?.count ?? 0;
 
   if (loading || !user) return null;
 
   return (
     <div className="flex min-h-[100vh]">
       {/* Sidebar */}
-      <aside className="w-64 hidden md:flex flex-col bg-[#0a0a0a] border-r border-white/[0.06]">
+      <aside className="w-64 hidden md:flex flex-col bg-[#0a0a0a] border-r border-white/6">
 
         {/* Profile header */}
         <div className="px-5 py-6">

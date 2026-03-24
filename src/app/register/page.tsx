@@ -211,7 +211,7 @@ export default function RegisterPage() {
               </div>
 
               {/* Age checkbox */}
-              <label className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 cursor-pointer hover:border-[#F5C400]/25 transition-colors">
+              <label className="flex items-center gap-3 bg-white/3 border border-white/[0.08] rounded-xl px-4 py-3 cursor-pointer hover:border-[#F5C400]/25 transition-colors">
                 <input
                   type="checkbox"
                   id="ageConfirmed"

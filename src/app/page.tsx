@@ -274,7 +274,7 @@ export default function HomePage() {
             ].map((item) => (
               <div
                 key={item.title}
-                className="bg-white/[0.025] border border-white/[0.06] rounded-2xl p-6 hover:border-[#F5C400]/20 hover:bg-white/[0.04] transition-all duration-300 group"
+                className="bg-white/[0.025] border border-white/6 rounded-2xl p-6 hover:border-[#F5C400]/20 hover:bg-white/[0.04] transition-all duration-300 group"
               >
                 <div className="text-3xl mb-4">{item.emoji}</div>
                 <h3 className="font-bold text-white text-base mb-2 group-hover:text-[#F5C400] transition-colors">{item.title}</h3>
@@ -296,7 +296,7 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="relative bg-white/[0.03] border border-[#F5C400]/25 rounded-3xl p-8 text-center overflow-hidden glow-gold">
+          <div className="relative bg-white/3 border border-[#F5C400]/25 rounded-3xl p-8 text-center overflow-hidden glow-gold">
             {/* Top accent line */}
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-px bg-gradient-to-r from-transparent via-[#F5C400]/70 to-transparent" />
             {/* Background glow */}

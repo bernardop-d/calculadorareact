@@ -14,7 +14,7 @@ export default function DashboardNav({ unreadMessages }: { unreadMessages: numbe
   const pathname = usePathname();
 
   return (
-    <div className="flex gap-1 bg-white/4 border border-white/[0.06] rounded-xl p-1 mb-7 w-fit overflow-x-auto">
+    <div className="flex gap-1 bg-white/4 border border-white/6 rounded-xl p-1 mb-7 w-fit overflow-x-auto">
       {tabs.map(({ href, label }) => {
         const active =
           href === "/dashboard"

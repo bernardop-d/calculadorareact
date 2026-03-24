@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent } from "@/components/ui/Card";
 import Button from "@/components/ui/Button";
@@ -18,15 +19,15 @@ interface Payment {
 
 export default function DashboardPaymentsPage() {
   const { user, isSubscribed, loading } = useAuth();
-  const [payments, setPayments] = useState<Payment[]>([]);
   const [portalLoading, setPortalLoading] = useState(false);
 
-  useEffect(() => {
-    if (loading || !user) return;
-    fetch("/api/payments/history")
-      .then((r) => r.json())
-      .then((d) => setPayments(d.payments ?? []));
-  }, [loading, user]);
+  const { data: payments = [] } = useQuery<Payment[]>({
+    queryKey: ["payments-history"],
+    queryFn: () => fetch("/api/payments/history").then((r) => r.json()).then((d) => d.payments ?? []),
+    enabled: !!user && !loading,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   async function handlePortal() {
     setPortalLoading(true);

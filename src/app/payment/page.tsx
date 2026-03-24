@@ -78,7 +78,7 @@ function PaymentContent() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
           {/* Basic plan */}
-          <div className="bg-white/[0.03] border border-white/[0.08] rounded-2xl p-6 flex flex-col">
+          <div className="bg-white/3 border border-white/[0.08] rounded-2xl p-6 flex flex-col">
             <div className="flex items-center gap-2 mb-4">
               <Star size={16} className="text-zinc-400" />
               <span className="text-xs font-bold text-zinc-400 tracking-widest uppercase">Básico</span>
@@ -112,7 +112,7 @@ function PaymentContent() {
           </div>
 
           {/* Premium plan */}
-          <div className="bg-white/[0.03] border border-[#F5C400]/30 rounded-2xl p-6 flex flex-col relative overflow-hidden glow-gold">
+          <div className="bg-white/3 border border-[#F5C400]/30 rounded-2xl p-6 flex flex-col relative overflow-hidden glow-gold">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-px bg-gradient-to-r from-transparent via-[#F5C400]/60 to-transparent" />
             <div className="absolute top-3 right-3">
               <span className="bg-[#F5C400] text-black text-[10px] font-black px-2 py-0.5 rounded-full">POPULAR</span>

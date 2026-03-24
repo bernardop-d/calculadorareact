@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/Card";
 import { formatDate, formatCurrency } from "@/lib/utils";
 
@@ -15,19 +15,15 @@ interface Payment {
 }
 
 export default function AdminPaymentsPage() {
-  const [payments, setPayments] = useState<Payment[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery<{ payments: Payment[]; total: number }>({
+    queryKey: ["admin-payments"],
+    queryFn: () => fetch("/api/admin/payments").then((r) => r.json()),
+    staleTime: 0,
+    gcTime: 0,
+  });
 
-  useEffect(() => {
-    fetch("/api/admin/payments")
-      .then((r) => r.json())
-      .then((data) => {
-        setPayments(data.payments || []);
-        setTotal(data.total || 0);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const payments = data?.payments ?? [];
+  const total = data?.total ?? 0;
 
   return (
     <div className="p-6 lg:p-8">
@@ -36,7 +32,7 @@ export default function AdminPaymentsPage() {
         <p className="text-zinc-400 text-sm">{total} transações</p>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-3">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="bg-zinc-900 rounded-xl h-16 animate-pulse" />

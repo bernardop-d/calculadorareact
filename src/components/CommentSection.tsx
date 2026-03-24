@@ -105,7 +105,7 @@ export default function CommentSection({ postId, currentUserId, isAdmin }: Props
       {loading ? (
         <div className="space-y-3">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-14 bg-white/[0.03] rounded-xl animate-pulse" />
+            <div key={i} className="h-14 bg-white/3 rounded-xl animate-pulse" />
           ))}
         </div>
       ) : comments.length === 0 ? (

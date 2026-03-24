@@ -1,6 +1,7 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -12,19 +13,19 @@ import DashboardNav from "./DashboardNav";
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, isSubscribed, loading, logout } = useAuth();
   const router = useRouter();
-  const [unreadMessages, setUnreadMessages] = useState(0);
-
   useEffect(() => {
     if (!loading && !user) router.replace("/login");
   }, [user, loading, router]);
 
-  useEffect(() => {
-    if (!user) return;
-    fetch("/api/messages/unread-count")
-      .then((r) => r.json())
-      .then((d) => setUnreadMessages(d.count ?? 0))
-      .catch(() => {});
-  }, [user]);
+  const { data: unreadData } = useQuery<{ count: number }>({
+    queryKey: ["unread-count"],
+    queryFn: () => fetch("/api/messages/unread-count").then((r) => r.json()),
+    enabled: !!user,
+    staleTime: 0,
+    gcTime: 0,
+  });
+
+  const unreadMessages = unreadData?.count ?? 0;
 
   if (loading) {
     return (
@@ -43,7 +44,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       </Suspense>
 
       {!isSubscribed && (
-        <div className="bg-white/[0.03] border border-[#F5C400]/20 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bg-white/3 border border-[#F5C400]/20 rounded-2xl p-5 mb-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-[#F5C400]/10 rounded-xl flex items-center justify-center shrink-0">
               <Crown size={18} className="text-[#F5C400]" />

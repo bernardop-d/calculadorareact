@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Send, ArrowLeft } from "lucide-react";
@@ -18,7 +19,7 @@ interface Message {
 export default function MessagesPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const queryClient = useQueryClient();
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -27,22 +28,18 @@ export default function MessagesPage() {
     if (!loading && !user) router.replace("/login");
   }, [user, loading, router]);
 
-  const fetchMessages = () => {
-    fetch("/api/messages")
-      .then((r) => r.json())
-      .then((d) => {
-        setMessages(d.messages ?? []);
-        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-      })
-      .catch(() => {});
-  };
+  const { data: messages = [] } = useQuery<Message[]>({
+    queryKey: ["messages"],
+    queryFn: () => fetch("/api/messages").then((r) => r.json()).then((d) => d.messages ?? []),
+    enabled: !!user,
+    refetchInterval: 5_000,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   useEffect(() => {
-    if (!user) return;
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
-  }, [user]);
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+  }, [messages]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -56,7 +53,7 @@ export default function MessagesPage() {
       });
       if (res.ok) {
         setBody("");
-        fetchMessages();
+        queryClient.invalidateQueries({ queryKey: ["messages"] });
       }
     } catch {
       // keep body on error so user can retry

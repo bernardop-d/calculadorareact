@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useRef } from "react";
 import Image from "next/image";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import {
@@ -67,8 +68,7 @@ const TIERS = [
 ] as const;
 
 export default function AdminPostsPage() {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>("list");
   const [editingPost, setEditingPost] = useState<Post | null>(null);
   const [uploadFiles, setUploadFiles] = useState<File[]>([]);
@@ -90,14 +90,14 @@ export default function AdminPostsPage() {
   const published = watch("published");
   const contentTier = watch("contentTier");
 
-  const fetchPosts = useCallback(async () => {
-    const res = await fetch("/api/admin/posts");
-    const data = await res.json();
-    setPosts(data.posts || []);
-    setLoading(false);
-  }, []);
+  const { data: postsData, isLoading: loading } = useQuery<{ posts: Post[] }>({
+    queryKey: ["admin-posts"],
+    queryFn: () => fetch("/api/admin/posts").then((r) => r.json()),
+    staleTime: 0,
+    gcTime: 0,
+  });
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  const posts = postsData?.posts ?? [];
 
   function startCreate() {
     setEditingPost(null);
@@ -145,7 +145,7 @@ export default function AdminPostsPage() {
           await uploadMedia(editingPost.id, uploadFiles);
         }
       }
-      await fetchPosts();
+      await queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
       setMode("list");
       setUploadFiles([]);
     } finally {
@@ -164,7 +164,7 @@ export default function AdminPostsPage() {
   async function deletePost(id: string) {
     if (!confirm("Tem certeza que deseja excluir este post?")) return;
     await fetch(`/api/admin/posts/${id}`, { method: "DELETE" });
-    fetchPosts();
+    queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
   }
 
   function addFiles(fileList: FileList | null) {
