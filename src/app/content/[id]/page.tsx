@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
 import NextImage from "next/image";
@@ -31,9 +32,6 @@ export default function ContentPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [post, setPost] = useState<Post | null>(null);
-  const [error, setError] = useState("");
-  const [fetching, setFetching] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
 
   // Identificador do usuário para watermark
@@ -67,18 +65,20 @@ export default function ContentPage() {
     if (!loading && !user) router.replace("/login");
   }, [user, loading, router]);
 
+  const { data: postData, isLoading: fetching, error: queryError } = useQuery({
+    queryKey: ["post", id],
+    queryFn: () => fetch(`/api/posts/${id}`).then((r) => r.json()),
+    enabled: !!user && !loading && !!id,
+    staleTime: 0,
+    gcTime: 0,
+  });
+
   useEffect(() => {
-    if (loading || !user || !id) return;
-    fetch(`/api/posts/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.locked) router.replace("/payment");
-        else if (data.error) setError(data.error);
-        else setPost(data.post);
-      })
-      .catch(() => setError("Erro ao carregar conteúdo"))
-      .finally(() => setFetching(false));
-  }, [id, user, loading, router]);
+    if (postData?.locked) router.replace("/payment");
+  }, [postData, router]);
+
+  const post: Post | null = postData?.post ?? null;
+  const error = postData?.error ?? (queryError ? "Erro ao carregar conteúdo" : "");
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef } from "react";
 import Image from "next/image";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import LikeButton from "@/components/LikeButton";
 import StoriesBar from "@/components/StoriesBar";
@@ -27,51 +28,39 @@ interface Post {
 
 export default function DashboardContentPage() {
   const { user, loading } = useAuth();
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState(true);
-  const [postsLoading, setPostsLoading] = useState(true);
-  const [fetchingMore, setFetchingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
-  const isFetchingRef = useRef(false);
 
-  const loadPosts = useCallback(async (cursor?: string) => {
-    if (isFetchingRef.current) return;
-    isFetchingRef.current = true;
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: postsLoading,
+  } = useInfiniteQuery({
+    queryKey: ["posts"],
+    queryFn: ({ pageParam }: { pageParam: string | null }) =>
+      fetch(`/api/posts${pageParam ? `?cursor=${pageParam}` : ""}`).then((r) => r.json()),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
+    enabled: !!user && !loading,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
-    const url = `/api/posts${cursor ? `?cursor=${cursor}` : ""}`;
-    const res = await fetch(url);
-    if (res.ok) {
-      const data = await res.json();
-      setPosts((prev) => (cursor ? [...prev, ...data.posts] : data.posts));
-      setNextCursor(data.nextCursor);
-      setHasMore(!!data.nextCursor);
-    }
-    setPostsLoading(false);
-    setFetchingMore(false);
-    isFetchingRef.current = false;
-  }, []);
-
-  useEffect(() => {
-    if (loading || !user) return;
-    loadPosts();
-  }, [loading, user, loadPosts]);
+  const posts = data?.pages.flatMap((p) => p.posts) ?? [];
 
   useEffect(() => {
     const el = sentinelRef.current;
     if (!el) return;
     const observer = new IntersectionObserver(
       ([entry]) => {
-        if (entry.isIntersecting && hasMore && !isFetchingRef.current && nextCursor) {
-          setFetchingMore(true);
-          loadPosts(nextCursor);
-        }
+        if (entry.isIntersecting && hasNextPage && !isFetchingNextPage) fetchNextPage();
       },
       { rootMargin: "200px" }
     );
     observer.observe(el);
     return () => observer.disconnect();
-  }, [hasMore, nextCursor, loadPosts]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (loading || !user) return null;
 
@@ -189,10 +178,10 @@ export default function DashboardContentPage() {
           </div>
 
           <div ref={sentinelRef} className="h-10 flex items-center justify-center mt-4">
-            {fetchingMore && (
+            {isFetchingNextPage && (
               <div className="w-5 h-5 border-2 border-[#F5C400] border-t-transparent rounded-full animate-spin" />
             )}
-            {!hasMore && posts.length > 0 && <p className="text-zinc-700 text-xs">Você viu tudo.</p>}
+            {!hasNextPage && posts.length > 0 && <p className="text-zinc-700 text-xs">Você viu tudo.</p>}
           </div>
         </>
       )}

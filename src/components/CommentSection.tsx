@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
+import { useInfiniteQuery, useQueryClient } from "@tanstack/react-query";
 import { Trash2, Send, MessageCircle } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 
@@ -18,28 +19,26 @@ interface Props {
 }
 
 export default function CommentSection({ postId, currentUserId, isAdmin }: Props) {
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
-  const [loading, setLoading] = useState(true);
 
-  const load = useCallback(async (cursor?: string) => {
-    try {
-      const url = `/api/posts/${postId}/comments${cursor ? `?cursor=${cursor}` : ""}`;
-      const res = await fetch(url);
-      if (!res.ok) return;
-      const data = await res.json();
-      setComments((prev) => cursor ? [...prev, ...data.comments] : data.comments);
-      setNextCursor(data.nextCursor);
-    } catch {
-      // silently ignore network errors
-    } finally {
-      setLoading(false);
-    }
-  }, [postId]);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isLoading: loading,
+  } = useInfiniteQuery({
+    queryKey: ["comments", postId],
+    queryFn: ({ pageParam }: { pageParam: string | null }) =>
+      fetch(`/api/posts/${postId}/comments${pageParam ? `?cursor=${pageParam}` : ""}`).then((r) => r.json()),
+    initialPageParam: null as string | null,
+    getNextPageParam: (lastPage) => lastPage.nextCursor ?? null,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
-  useEffect(() => { load(); }, [load]);
+  const comments = data?.pages.flatMap((p) => p.comments) ?? [];
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,9 +51,8 @@ export default function CommentSection({ postId, currentUserId, isAdmin }: Props
         body: JSON.stringify({ body: body.trim() }),
       });
       if (res.ok) {
-        const data = await res.json();
-        setComments((prev) => [...prev, data.comment]);
         setBody("");
+        queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       }
     } catch {
       // network error — keep body so user can retry
@@ -66,7 +64,7 @@ export default function CommentSection({ postId, currentUserId, isAdmin }: Props
   async function deleteComment(commentId: string) {
     try {
       const res = await fetch(`/api/posts/${postId}/comments/${commentId}`, { method: "DELETE" });
-      if (res.ok) setComments((prev) => prev.filter((c) => c.id !== commentId));
+      if (res.ok) queryClient.invalidateQueries({ queryKey: ["comments", postId] });
     } catch {
       // silently ignore
     }
@@ -138,10 +136,10 @@ export default function CommentSection({ postId, currentUserId, isAdmin }: Props
             </div>
           ))}
 
-          {nextCursor && (
+          {hasNextPage && (
             <button
               type="button"
-              onClick={() => load(nextCursor)}
+              onClick={() => fetchNextPage()}
               className="text-xs text-zinc-500 hover:text-[#F5C400] transition-colors mt-2"
             >
               Carregar mais comentários
