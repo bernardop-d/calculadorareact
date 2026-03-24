@@ -21,8 +21,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full text-white">
+    <html
+      lang="pt-BR"
+      className={`${geist.variable} h-full antialiased`}
+      data-theme="dark"
+      suppressHydrationWarning
+    >
+      <body className="min-h-full text-white" suppressHydrationWarning>
         <ThemeProvider>
           <AuthProvider>
             <ConditionalNav />
