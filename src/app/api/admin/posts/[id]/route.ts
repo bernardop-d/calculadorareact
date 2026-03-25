@@ -3,6 +3,7 @@ import { getAuthUser } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { postSchema } from "@/lib/validations";
 import { sendNewPostNotification } from "@/lib/email";
+import { sendPushNotification } from "@/lib/push";
 
 async function requireAdmin() {
   const user = await getAuthUser();
@@ -88,13 +89,20 @@ export async function PATCH(
     const post = await prisma.post.update({ where: { id }, data: { published } });
 
     if (isNewlyPublished) {
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
       prisma.user
         .findMany({ where: { subscription: { status: "ACTIVE" } }, select: { email: true } })
         .then((users) => {
           const emails = users.map((u) => u.email);
           return sendNewPostNotification(emails, { title: post.title, id: post.id, thumbnail: null });
         })
-        .catch((err) => console.error("[NOTIFY]", err));
+        .catch((err) => console.error("[NOTIFY EMAIL]", err));
+
+      sendPushNotification({
+        title: "Nova publicação!",
+        body: post.title,
+        url: `${appUrl}/dashboard`,
+      }).catch((err) => console.error("[NOTIFY PUSH]", err));
     }
 
     return NextResponse.json({ post });

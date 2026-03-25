@@ -179,7 +179,7 @@ export default function PostsGrid() {
   }
 
   const { data: creator } = useQuery({
-    queryKey: ["creator-profile"],
+    queryKey: ["creator-profile-full"],
     queryFn: fetchCreator,
     staleTime: 10 * 60_000,
   });

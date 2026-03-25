@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ConditionalNav from "@/components/ConditionalNav";
+import ServiceWorkerRegistrar from "@/components/ServiceWorkerRegistrar";
 import ReactQueryProvider from "@/lib/query-client";
 
 const geist = Geist({
@@ -32,6 +33,7 @@ export default function RootLayout({
         <ReactQueryProvider>
           <ThemeProvider>
             <AuthProvider>
+              <ServiceWorkerRegistrar />
               <ConditionalNav />
               {children}
             </AuthProvider>

@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert, Sun, Moon, MessageSquare } from "lucide-react";
+import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert, Sun, Moon, MessageSquare, User, Link as LinkIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -18,6 +18,8 @@ const NAV_ITEMS = [
   { href: "/admin/users", label: "Usuários", icon: Users },
   { href: "/admin/payments", label: "Pagamentos", icon: CreditCard },
   { href: "/admin/security", label: "Segurança", icon: ShieldAlert },
+  { href: "/admin/profile", label: "Perfil", icon: User },
+  { href: "/admin/links", label: "Links", icon: LinkIcon },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -28,6 +30,17 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   useEffect(() => {
     if (!loading && (!user || !isAdmin)) router.replace("/login");
   }, [user, isAdmin, loading, router]);
+
+  const { data: profileData } = useQuery<{ profile: { name: string } }>({
+    queryKey: ["admin-creator-profile"],
+    queryFn: () => fetch("/api/admin/profile").then((r) => r.json()),
+    enabled: !!user && !!isAdmin,
+    staleTime: 60_000,
+  });
+
+  const creatorName = profileData?.profile?.name ?? "Queen Rayalla";
+  const [creatorFirst, ...creatorRest] = creatorName.split(" ");
+  const creatorLast = creatorRest.join(" ");
 
   const { data: unreadData } = useQuery<{ count: number }>({
     queryKey: ["admin-unread-count"],
@@ -55,8 +68,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             </div>
             <div className="min-w-0">
               <p className="text-sm font-bold leading-tight">
-                <span className="text-white">Queen </span>
-                <span className="text-[#F5C400]">Rayalla</span>
+                <span className="text-white">{creatorFirst}{creatorLast ? " " : ""}</span>
+                {creatorLast && <span className="text-[#F5C400]">{creatorLast}</span>}
               </p>
               <p className="text-[11px] text-zinc-600 truncate mt-0.5">{user.email}</p>
             </div>

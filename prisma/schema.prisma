@@ -24,16 +24,17 @@ model User {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 
-  subscription     Subscription?
-  payments         Payment[]
-  likes            Like[]
-  comments         Comment[]
-  postPurchases    PostPurchase[]
-  tips             Tip[]
-  storyViews       StoryView[]
-  sentMessages     Message[]       @relation("SentMessages")
-  receivedMessages Message[]       @relation("ReceivedMessages")
-  securityEvents   SecurityEvent[]
+  subscription      Subscription?
+  payments          Payment[]
+  likes             Like[]
+  comments          Comment[]
+  postPurchases     PostPurchase[]
+  tips              Tip[]
+  storyViews        StoryView[]
+  sentMessages      Message[]          @relation("SentMessages")
+  receivedMessages  Message[]          @relation("ReceivedMessages")
+  securityEvents    SecurityEvent[]
+  pushSubscriptions PushSubscription[]
 
   @@index([email])
 }
@@ -72,17 +73,18 @@ model Payment {
 }
 
 model Post {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   title            String
   description      String?
-  isPremium        Boolean  @default(true)
-  contentTier      String   @default("PREMIUM")
+  isPremium        Boolean   @default(true)
+  contentTier      String    @default("PREMIUM")
   ppvPrice         Int?
   unlocksAfterDays Int?
-  likeCount        Int      @default(0)
-  published        Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  likeCount        Int       @default(0)
+  published        Boolean   @default(false)
+  scheduledAt      DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   media     Media[]
   likes     Like[]
@@ -210,4 +212,36 @@ model SecurityEvent {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model CreatorProfile {
+  id        String   @id @default("singleton")
+  name      String   @default("Queen Rayalla")
+  bio       String?
+  avatarUrl String?
+  coverUrl  String?
+  updatedAt DateTime @updatedAt
+}
+
+model CreatorLink {
+  id        String   @id @default(cuid())
+  title     String
+  url       String
+  emoji     String?
+  order     Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }

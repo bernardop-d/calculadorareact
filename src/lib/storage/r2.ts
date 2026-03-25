@@ -57,7 +57,8 @@ export const r2Provider: StorageProvider = {
 
   async getUrl(key, expiresInSeconds = 3600) {
     if (process.env.R2_PUBLIC_URL) {
-      return `${process.env.R2_PUBLIC_URL}/${key}`;
+      const base = process.env.R2_PUBLIC_URL.replace(/\/$/, "");
+      return `${base}/${key}`;
     }
 
     const command = new GetObjectCommand({

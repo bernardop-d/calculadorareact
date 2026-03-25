@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import Button from "./ui/Button";
 import { useState } from "react";
-import { Menu, X, Crown, Sun, Moon } from "lucide-react";
+import { Menu, X, Crown, Sun, Moon, Bell, BellOff } from "lucide-react";
 
 export default function Navbar() {
   const { user, logout, isSubscribed, isAdmin } = useAuth();
   const { theme, toggle } = useTheme();
+  const { subscribed, supported, loading: pushLoading, subscribe, unsubscribe } = usePushNotifications();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -38,6 +40,19 @@ export default function Navbar() {
             >
               {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
             </button>
+            {user && !isAdmin && supported && (
+              <button
+                type="button"
+                onClick={subscribed ? unsubscribe : subscribe}
+                disabled={pushLoading}
+                title={subscribed ? "Desativar notificações" : "Ativar notificações"}
+                className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${
+                  subscribed ? "text-[#F5C400] hover:text-[#F5C400]/70" : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                {subscribed ? <Bell size={18} /> : <BellOff size={18} />}
+              </button>
+            )}
             {user ? (
               <>
                 {!isAdmin && (

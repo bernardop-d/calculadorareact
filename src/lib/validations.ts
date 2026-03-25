@@ -67,6 +67,7 @@ export const postSchema = z.object({
   ppvPrice: z.number().int().min(100).optional().nullable(),
   unlocksAfterDays: z.number().int().min(1).optional().nullable(),
   published: z.boolean(),
+  scheduledAt: z.string().datetime().optional().nullable(),
 });
 
 export const commentSchema = z.object({

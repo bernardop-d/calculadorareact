@@ -4,14 +4,33 @@ import { useState, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "@/components/ui/Button";
 import PostGridItem from "@/components/admin/PostGridItem";
+import PostPreview from "@/components/admin/PostPreview";
 import {
   Plus, ArrowLeft, CheckSquare, X as XIcon, EyeOff,
   ImageIcon, Lock, Globe, Crown, Upload, X, FileVideo, Image as ImgIcon,
+  Eye, GripVertical,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { postSchema } from "@/lib/validations";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface PostFormData {
   title: string;
@@ -21,6 +40,15 @@ interface PostFormData {
   contentTier: "FREE" | "BASIC" | "PREMIUM";
   ppvPrice?: number | null;
   unlocksAfterDays?: number | null;
+  scheduledAt?: string | null;
+}
+
+interface MediaItem {
+  id: string;
+  url: string;
+  type: string;
+  filename: string;
+  order: number;
 }
 
 interface Post {
@@ -32,9 +60,10 @@ interface Post {
   contentTier: string | null;
   ppvPrice: number | null;
   unlocksAfterDays: number | null;
+  scheduledAt: string | null;
   createdAt: string;
   _count: { media: number };
-  media: { url: string; type: string }[];
+  media: MediaItem[];
 }
 
 type Mode = "list" | "create" | "edit";
@@ -66,6 +95,59 @@ const TIERS = [
   },
 ] as const;
 
+/* ── Sortable media item ── */
+function SortableMediaItem({
+  media,
+  onDelete,
+}: {
+  media: MediaItem;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: media.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      // dnd-kit requires inline styles for drag transform/transition — cannot be moved to CSS
+      // eslint-disable-next-line react/forbid-component-props
+      style={style}
+      className="flex items-center gap-3 bg-zinc-900 border border-zinc-800 rounded-lg px-3 py-2"
+    >
+      <button
+        type="button"
+        {...attributes}
+        {...listeners}
+        className="text-zinc-600 hover:text-zinc-300 cursor-grab active:cursor-grabbing shrink-0"
+        title="Arrastar para reordenar"
+      >
+        <GripVertical size={15} />
+      </button>
+      <div className="w-8 h-8 bg-zinc-800 rounded-lg flex items-center justify-center shrink-0 overflow-hidden">
+        {media.type?.startsWith("video") || media.type === "VIDEO" ? (
+          <FileVideo size={14} className="text-blue-400" />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={media.url} alt="" className="w-full h-full object-cover rounded-lg" />
+        )}
+      </div>
+      <span className="text-sm text-zinc-300 truncate flex-1">{media.filename}</span>
+      <button
+        type="button"
+        title="Remover mídia"
+        onClick={() => onDelete(media.id)}
+        className="text-zinc-600 hover:text-red-400 transition-colors shrink-0"
+      >
+        <X size={15} />
+      </button>
+    </div>
+  );
+}
+
 export default function AdminPostsPage() {
   const queryClient = useQueryClient();
   const [mode, setMode] = useState<Mode>("list");
@@ -77,7 +159,14 @@ export default function AdminPostsPage() {
   const [selecting, setSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [bulkLoading, setBulkLoading] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
+  const [existingMedia, setExistingMedia] = useState<MediaItem[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
 
   const {
     register,
@@ -90,6 +179,8 @@ export default function AdminPostsPage() {
   } = useForm<PostFormData>({ resolver: zodResolver(postSchema) as any });
 
   const contentTier = watch("contentTier");
+  const watchedTitle = watch("title");
+  const watchedDescription = watch("description");
 
   const { data: postsData, isLoading: loading } = useQuery<{ posts: Post[] }>({
     queryKey: ["admin-posts"],
@@ -103,13 +194,15 @@ export default function AdminPostsPage() {
   function startCreate() {
     setEditingPost(null);
     setUploadFiles([]);
-    reset({ title: "", description: "", isPremium: true, published: false, contentTier: "PREMIUM", ppvPrice: null, unlocksAfterDays: null });
+    setExistingMedia([]);
+    reset({ title: "", description: "", isPremium: true, published: false, contentTier: "PREMIUM", ppvPrice: null, unlocksAfterDays: null, scheduledAt: null });
     setMode("create");
   }
 
   function startEdit(post: Post) {
     setEditingPost(post);
     setUploadFiles([]);
+    setExistingMedia(post.media ? [...post.media].sort((a, b) => a.order - b.order) : []);
     reset({
       title: post.title,
       description: post.description ?? "",
@@ -118,6 +211,7 @@ export default function AdminPostsPage() {
       contentTier: (post.contentTier as "FREE" | "BASIC" | "PREMIUM") ?? "PREMIUM",
       ppvPrice: post.ppvPrice,
       unlocksAfterDays: post.unlocksAfterDays,
+      scheduledAt: post.scheduledAt ? post.scheduledAt.slice(0, 16) : null,
     });
     setMode("edit");
   }
@@ -126,6 +220,13 @@ export default function AdminPostsPage() {
     setSaving(true);
     try {
       data.isPremium = data.contentTier !== "FREE";
+      // Convert datetime-local string to ISO if set
+      if (data.scheduledAt) {
+        data.scheduledAt = new Date(data.scheduledAt).toISOString();
+      } else {
+        data.scheduledAt = null;
+      }
+
       if (mode === "create") {
         const res = await fetch("/api/admin/posts", {
           method: "POST",
@@ -145,10 +246,19 @@ export default function AdminPostsPage() {
         if (uploadFiles.length > 0) {
           await uploadMedia(editingPost.id, uploadFiles);
         }
+        // Save existing media order
+        if (existingMedia.length > 0) {
+          await fetch(`/api/admin/posts/${editingPost.id}/media/order`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mediaIds: existingMedia.map((m) => m.id) }),
+          });
+        }
       }
       await queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
       setMode("list");
       setUploadFiles([]);
+      setExistingMedia([]);
     } finally {
       setSaving(false);
     }
@@ -160,6 +270,16 @@ export default function AdminPostsPage() {
     files.forEach((f) => formData.append("files", f));
     await fetch(`/api/admin/posts/${postId}/media`, { method: "POST", body: formData });
     setUploading(false);
+  }
+
+  async function deleteExistingMedia(mediaId: string) {
+    if (!editingPost) return;
+    await fetch(`/api/admin/posts/${editingPost.id}/media`, {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ mediaId }),
+    });
+    setExistingMedia((prev) => prev.filter((m) => m.id !== mediaId));
   }
 
   async function deletePost(id: string) {
@@ -177,10 +297,31 @@ export default function AdminPostsPage() {
     setUploadFiles((prev) => prev.filter((_, i) => i !== index));
   }
 
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (over && active.id !== over.id) {
+      setExistingMedia((items) => {
+        const oldIndex = items.findIndex((m) => m.id === active.id);
+        const newIndex = items.findIndex((m) => m.id === over.id);
+        return arrayMove(items, oldIndex, newIndex);
+      });
+    }
+  }
+
   /* ── FORM ── */
   if (mode !== "list") {
     return (
       <div className="p-6 lg:p-8 max-w-2xl mx-auto">
+        {showPreview && (
+          <PostPreview
+            title={watchedTitle ?? ""}
+            description={watchedDescription}
+            contentTier={contentTier ?? "PREMIUM"}
+            media={existingMedia}
+            onClose={() => setShowPreview(false)}
+          />
+        )}
+
         <button
           type="button"
           onClick={() => setMode("list")}
@@ -232,14 +373,14 @@ export default function AdminPostsPage() {
                 <div className="grid grid-cols-3 gap-3">
                   {TIERS.map((tier) => {
                     const Icon = tier.icon;
-                    const selected = field.value === tier.value;
+                    const isSelected = field.value === tier.value;
                     return (
                       <button
                         key={tier.value}
                         type="button"
                         onClick={() => field.onChange(tier.value)}
                         className={`relative flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center ${
-                          selected
+                          isSelected
                             ? `${tier.color} ring-2 ${tier.check} ring-offset-2 ring-offset-[#111]`
                             : "border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-600"
                         }`}
@@ -255,10 +396,50 @@ export default function AdminPostsPage() {
             />
           </div>
 
+          {/* Agendar publicação */}
+          <div className="space-y-1.5">
+            <label className="block text-sm font-semibold text-zinc-200">
+              Agendar publicação <span className="text-zinc-500 font-normal">(opcional)</span>
+            </label>
+            <input
+              type="datetime-local"
+              className="w-full px-4 py-3 rounded-xl bg-zinc-900 border border-zinc-700 text-white placeholder-zinc-600 focus:outline-none focus:ring-2 focus:ring-[#F5C400]/40 transition [color-scheme:dark]"
+              {...register("scheduledAt")}
+            />
+            <p className="text-xs text-zinc-600">Se definido, o post será publicado automaticamente nessa data/hora (via cron)</p>
+          </div>
+
+          {/* Existing media (edit mode) with drag-and-drop */}
+          {mode === "edit" && existingMedia.length > 0 && (
+            <div className="space-y-3">
+              <label className="block text-sm font-semibold text-zinc-200">
+                Mídias existentes <span className="text-zinc-500 font-normal">(arraste para reordenar)</span>
+              </label>
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <SortableContext items={existingMedia.map((m) => m.id)} strategy={verticalListSortingStrategy}>
+                  <div className="space-y-2">
+                    {existingMedia.map((media) => (
+                      <SortableMediaItem
+                        key={media.id}
+                        media={media}
+                        onDelete={deleteExistingMedia}
+                      />
+                    ))}
+                  </div>
+                </SortableContext>
+              </DndContext>
+            </div>
+          )}
+
           {/* Upload de mídia */}
           <div className="space-y-3">
             <label className="block text-sm font-semibold text-zinc-200">
-              Fotos e vídeos <span className="text-zinc-500 font-normal">(opcional)</span>
+              {mode === "edit" ? "Adicionar novas mídias" : "Fotos e vídeos"}{" "}
+              <span className="text-zinc-500 font-normal">(opcional)</span>
             </label>
 
             {/* Drop zone */}
@@ -357,16 +538,26 @@ export default function AdminPostsPage() {
             <p className="text-sm text-zinc-400">Será salvo como <span className="text-white font-medium">rascunho</span> — publique depois na lista de conteúdos</p>
           </div>
 
-          <Button
-            type="submit"
-            loading={saving || uploading}
-            size="lg"
-            className="w-full text-base"
-          >
-            {saving || uploading
-              ? uploading ? "Enviando mídia..." : "Salvando..."
-              : "Salvar rascunho"}
-          </Button>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setShowPreview(true)}
+              className="flex items-center gap-2 px-4 py-3 rounded-xl text-sm font-medium text-zinc-300 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition-colors"
+            >
+              <Eye size={16} />
+              Preview
+            </button>
+            <Button
+              type="submit"
+              loading={saving || uploading}
+              size="lg"
+              className="flex-1 text-base"
+            >
+              {saving || uploading
+                ? uploading ? "Enviando mídia..." : "Salvando..."
+                : "Salvar rascunho"}
+            </Button>
+          </div>
         </form>
       </div>
     );
@@ -482,7 +673,8 @@ export default function AdminPostsPage() {
             <PostGridItem
               key={post.id}
               post={post}
-              onEdit={startEdit}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              onEdit={startEdit as any}
               onDelete={deletePost}
               selecting={selecting}
               selected={selected.has(post.id)}
