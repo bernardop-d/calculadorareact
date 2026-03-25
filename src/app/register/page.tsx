@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Crown, Eye, EyeOff, Flame, Lock } from "lucide-react";
@@ -45,11 +46,13 @@ export default function RegisterPage() {
 
       {/* ── LEFT — Creator photo ── */}
       <div className="hidden lg:block lg:w-[58%] relative overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
+        <Image
           src="/creator.jpg"
           alt="Queen Rayalla"
-          className="absolute inset-0 w-full h-full object-cover object-top"
+          fill
+          sizes="58vw"
+          className="object-cover object-top"
+          priority
         />
 
         <div className="absolute inset-0 bg-gradient-to-r from-black/20 via-transparent to-[#080808]/95" />
@@ -208,7 +211,7 @@ export default function RegisterPage() {
               </div>
 
               {/* Age checkbox */}
-              <label className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.08] rounded-xl px-4 py-3 cursor-pointer hover:border-[#F5C400]/25 transition-colors">
+              <label className="flex items-center gap-3 bg-white/3 border border-white/[0.08] rounded-xl px-4 py-3 cursor-pointer hover:border-[#F5C400]/25 transition-colors">
                 <input
                   type="checkbox"
                   id="ageConfirmed"

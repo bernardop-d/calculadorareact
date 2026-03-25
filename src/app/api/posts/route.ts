@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, isSubscriptionActive } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getSignedMediaUrl, isR2Configured } from "@/lib/storage";
+import { getSignedMediaUrl, isRemoteStorage } from "@/lib/storage";
 
 async function resolveUrl(url: string, locked: boolean): Promise<string | null> {
   if (!url) return null;
   if (locked) return url; // Não assina URL de conteúdo bloqueado
-  if (!isR2Configured() || url.startsWith("/")) return url; // URL local
+  if (!isRemoteStorage() || url.startsWith("/")) return url; // URL local
   return getSignedMediaUrl(url, 3600);
 }
 
@@ -70,6 +70,7 @@ export async function GET(req: NextRequest) {
           createdAt: post.createdAt,
           mediaCount: post._count.media,
           thumbnail,
+          firstMediaType: post.media[0]?.type ?? null,
           locked,
         };
       })
@@ -77,7 +78,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { posts: formattedPosts, nextCursor },
-      { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" } }
+      { headers: { "Cache-Control": "no-store" } }
     );
   } catch (error) {
     console.error("[POSTS_GET]", error);

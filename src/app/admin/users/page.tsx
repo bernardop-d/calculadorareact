@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/Card";
 import { formatDate } from "@/lib/utils";
 import { Users } from "lucide-react";
@@ -15,19 +15,15 @@ interface User {
 }
 
 export default function AdminUsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading } = useQuery<{ users: User[]; total: number }>({
+    queryKey: ["admin-users"],
+    queryFn: () => fetch("/api/admin/users").then((r) => r.json()),
+    staleTime: 0,
+    gcTime: 0,
+  });
 
-  useEffect(() => {
-    fetch("/api/admin/users")
-      .then((r) => r.json())
-      .then((data) => {
-        setUsers(data.users || []);
-        setTotal(data.total || 0);
-      })
-      .finally(() => setLoading(false));
-  }, []);
+  const users = data?.users ?? [];
+  const total = data?.total ?? 0;
 
   return (
     <div className="p-6 lg:p-8">
@@ -39,7 +35,7 @@ export default function AdminUsersPage() {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-3">
           {[...Array(8)].map((_, i) => (
             <div key={i} className="bg-zinc-900 rounded-xl h-16 animate-pulse" />

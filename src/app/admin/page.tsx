@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Users, FileImage, CreditCard, TrendingUp, TrendingDown, MessageCircle, Heart, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import Link from "next/link";
@@ -35,7 +35,7 @@ function StatCard({
   href?: string;
 }) {
   const content = (
-    <div className="bg-white/[0.03] border border-white/[0.06] hover:border-white/10 rounded-2xl p-5 transition-all">
+    <div className="bg-white/3 border border-white/6 hover:border-white/10 rounded-2xl p-5 transition-all">
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs text-zinc-500 uppercase tracking-wider">{title}</span>
         {icon}
@@ -49,14 +49,12 @@ function StatCard({
 }
 
 export default function AdminDashboardPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
-
-  useEffect(() => {
-    fetch("/api/admin/stats")
-      .then((r) => r.json())
-      .then(setStats)
-      .catch(() => {});
-  }, []);
+  const { data: stats } = useQuery<Stats>({
+    queryKey: ["admin-stats"],
+    queryFn: () => fetch("/api/admin/stats").then((r) => r.json()),
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   if (!stats) {
     return (
@@ -64,7 +62,7 @@ export default function AdminDashboardPage() {
         <h1 className="text-2xl font-black text-white mb-8">Dashboard</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white/[0.03] rounded-2xl h-28 animate-pulse" />
+            <div key={i} className="bg-white/3 rounded-2xl h-28 animate-pulse" />
           ))}
         </div>
       </div>
@@ -133,7 +131,7 @@ export default function AdminDashboardPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Top posts */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
+        <div className="bg-white/3 border border-white/6 rounded-2xl p-5">
           <div className="flex items-center gap-2 mb-4">
             <Heart size={14} className="text-red-400" />
             <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider">Posts mais curtidos</h2>
@@ -157,7 +155,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Quick links */}
-        <div className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5">
+        <div className="bg-white/3 border border-white/6 rounded-2xl p-5">
           <h2 className="text-sm font-bold text-zinc-300 uppercase tracking-wider mb-4">Atalhos</h2>
           <div className="grid grid-cols-2 gap-2">
             {[
@@ -169,7 +167,7 @@ export default function AdminDashboardPage() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex items-center gap-2 bg-white/[0.03] border border-white/[0.06] hover:border-[#F5C400]/20 rounded-xl px-3 py-2.5 text-sm text-zinc-400 hover:text-white transition-all"
+                className="flex items-center gap-2 bg-white/3 border border-white/6 hover:border-[#F5C400]/20 rounded-xl px-3 py-2.5 text-sm text-zinc-400 hover:text-white transition-all"
               >
                 {link.icon}
                 {link.label}

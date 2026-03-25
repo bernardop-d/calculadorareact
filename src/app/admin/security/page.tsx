@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ShieldAlert, RefreshCw } from "lucide-react";
 
 interface Event {
@@ -21,19 +21,14 @@ const EVENT_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export default function SecurityPage() {
-  const [events, setEvents] = useState<Event[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data, isLoading, refetch, isFetching } = useQuery<{ events: Event[] }>({
+    queryKey: ["admin-security"],
+    queryFn: () => fetch("/api/admin/security").then((r) => r.json()),
+    staleTime: 0,
+    gcTime: 0,
+  });
 
-  const load = () => {
-    setLoading(true);
-    fetch("/api/admin/security")
-      .then((r) => r.json())
-      .then((d) => setEvents(d.events ?? []))
-      .catch(() => {})
-      .finally(() => setLoading(false));
-  };
-
-  useEffect(() => { load(); }, []);
+  const events = data?.events ?? [];
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -44,14 +39,15 @@ export default function SecurityPage() {
         </div>
         <button
           type="button"
-          onClick={load}
-          className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors"
+          onClick={() => refetch()}
+          disabled={isFetching}
+          className="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors disabled:opacity-50"
         >
-          <RefreshCw size={14} /> Atualizar
+          <RefreshCw size={14} className={isFetching ? "animate-spin" : ""} /> Atualizar
         </button>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center py-20">
           <div className="w-6 h-6 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
         </div>

@@ -45,6 +45,11 @@ export default function Navbar() {
                     <Link href="/dashboard" className="text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
                       Conteúdos
                     </Link>
+                    {isSubscribed && (
+                      <Link href="/dashboard/payments" className="text-sm text-zinc-400 hover:text-white transition-colors px-3 py-1.5">
+                        Assinaturas
+                      </Link>
+                    )}
                     {!isSubscribed && (
                       <Link href="/payment">
                         <Button size="sm">Assinar</Button>
@@ -87,7 +92,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {menuOpen && (
-        <div className="md:hidden bg-black/95 border-t border-white/5 px-4 py-4 space-y-2">
+        <div className="md:hidden bg-black/95 border-t border-white/5 px-4 py-4 space-y-2" onClick={() => setMenuOpen(false)}>
           {user ? (
             <>
               {isAdmin ? (
@@ -95,6 +100,9 @@ export default function Navbar() {
               ) : (
                 <>
                   <Link href="/dashboard" className="block py-2 text-zinc-300 hover:text-white">Conteúdos</Link>
+                  {isSubscribed && (
+                    <Link href="/dashboard/payments" className="block py-2 text-zinc-300 hover:text-white">Minhas assinaturas</Link>
+                  )}
                   {!isSubscribed && (
                     <Link href="/payment"><Button className="w-full mt-1">Assinar Agora</Button></Link>
                   )}

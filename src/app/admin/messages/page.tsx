@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
 import { MessageCircle, ArrowRight } from "lucide-react";
@@ -14,16 +14,14 @@ interface Conversation {
 
 export default function AdminMessagesPage() {
   const { user } = useAuth();
-  const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!user) return;
-    fetch("/api/admin/messages")
-      .then((r) => r.json())
-      .then((d) => { setConversations(d.conversations ?? []); setLoading(false); })
-      .catch(() => setLoading(false));
-  }, [user]);
+  const { data: conversations = [], isLoading } = useQuery<Conversation[]>({
+    queryKey: ["admin-messages"],
+    queryFn: () => fetch("/api/admin/messages").then((r) => r.json()).then((d) => d.conversations ?? []),
+    enabled: !!user,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   return (
     <div className="p-6 max-w-3xl mx-auto">
@@ -32,9 +30,9 @@ export default function AdminMessagesPage() {
         <h1 className="text-xl font-black text-white">Mensagens</h1>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="space-y-3">
-          {[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-white/[0.03] rounded-xl animate-pulse" />)}
+          {[...Array(5)].map((_, i) => <div key={i} className="h-16 bg-white/3 rounded-xl animate-pulse" />)}
         </div>
       ) : conversations.length === 0 ? (
         <p className="text-zinc-600 text-sm text-center py-16">Nenhuma mensagem ainda.</p>
@@ -42,7 +40,7 @@ export default function AdminMessagesPage() {
         <div className="space-y-2">
           {conversations.map((conv) => (
             <Link key={conv.user.id} href={`/admin/messages/${conv.user.id}`}>
-              <div className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] hover:border-[#F5C400]/20 rounded-xl p-4 transition-all group">
+              <div className="flex items-center gap-3 bg-white/3 border border-white/6 hover:border-[#F5C400]/20 rounded-xl p-4 transition-all group">
                 <div className="w-10 h-10 bg-[#F5C400]/10 border border-[#F5C400]/20 rounded-full flex items-center justify-center shrink-0 text-sm font-bold text-[#F5C400]">
                   {(conv.user.name ?? conv.user.email)[0].toUpperCase()}
                 </div>

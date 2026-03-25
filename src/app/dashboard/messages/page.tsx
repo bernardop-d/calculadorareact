@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import Image from "next/image";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { Send, ArrowLeft } from "lucide-react";
@@ -17,7 +19,7 @@ interface Message {
 export default function MessagesPage() {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const queryClient = useQueryClient();
   const [body, setBody] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -26,23 +28,18 @@ export default function MessagesPage() {
     if (!loading && !user) router.replace("/login");
   }, [user, loading, router]);
 
-  const fetchMessages = () => {
-    fetch("/api/messages")
-      .then((r) => r.json())
-      .then((d) => {
-        setMessages(d.messages ?? []);
-        setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
-      })
-      .catch(() => {});
-  };
+  const { data: messages = [] } = useQuery<Message[]>({
+    queryKey: ["messages"],
+    queryFn: () => fetch("/api/messages").then((r) => r.json()).then((d) => d.messages ?? []),
+    enabled: !!user,
+    refetchInterval: 5_000,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   useEffect(() => {
-    if (!user) return;
-    fetchMessages();
-    const interval = setInterval(fetchMessages, 5000);
-    return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user]);
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+  }, [messages]);
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
@@ -56,7 +53,7 @@ export default function MessagesPage() {
       });
       if (res.ok) {
         setBody("");
-        fetchMessages();
+        queryClient.invalidateQueries({ queryKey: ["messages"] });
       }
     } catch {
       // keep body on error so user can retry
@@ -70,14 +67,13 @@ export default function MessagesPage() {
   const myId = user.id;
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-5rem)]">
+    <div className="max-w-xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-9rem)]">
       <div className="flex items-center gap-3 mb-4">
         <Link href="/dashboard" className="text-zinc-500 hover:text-white transition-colors">
           <ArrowLeft size={20} />
         </Link>
-        <div className="w-9 h-9 rounded-full overflow-hidden bg-[#F5C400]/10 border border-[#F5C400]/30 flex items-center justify-center shrink-0">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/creator.jpg" alt="" className="w-full h-full object-cover object-top" />
+        <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[#F5C400]/10 border border-[#F5C400]/30 shrink-0">
+          <Image src="/creator.jpg" alt="" fill sizes="36px" className="object-cover object-top" />
         </div>
         <div>
           <p className="text-white font-bold text-sm">Queen Rayalla</p>
@@ -99,7 +95,7 @@ export default function MessagesPage() {
               <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 ${
                 isMine
                   ? "bg-[#F5C400] text-black rounded-br-sm"
-                  : "bg-white/[0.06] text-white rounded-bl-sm"
+                  : "bg-white/6 text-white rounded-bl-sm"
               }`}>
                 <p className="text-sm leading-relaxed">{msg.body}</p>
                 <p className={`text-[10px] mt-1 ${isMine ? "text-black/50" : "text-zinc-600"}`}>

@@ -29,6 +29,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       // Cloudflare R2 público
       { protocol: "https", hostname: "*.r2.dev" },
+      // Cloudflare R2 signed URLs (presigned via AWS SDK)
+      { protocol: "https", hostname: "*.r2.cloudflarestorage.com" },
       // R2 custom domain (ex: media.queenrayalla.com)
       { protocol: "https", hostname: "media.queenrayalla.com" },
       // Supabase Storage

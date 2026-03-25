@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Image from "next/image";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import StoryViewer from "./StoryViewer";
-import { Plus } from "lucide-react";
 
 interface Story {
   id: string;
@@ -12,19 +13,28 @@ interface Story {
   viewed: boolean;
 }
 
-export default function StoriesBar() {
-  const [stories, setStories] = useState<Story[]>([]);
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+async function fetchStories(): Promise<Story[]> {
+  const res = await fetch("/api/stories");
+  if (!res.ok) throw new Error("Failed to fetch stories");
+  const data = await res.json();
+  return data.stories ?? [];
+}
 
-  useEffect(() => {
-    fetch("/api/stories")
-      .then((r) => r.json())
-      .then((d) => setStories(d.stories ?? []))
-      .catch(() => {});
-  }, []);
+export default function StoriesBar() {
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+
+  const { data: stories = [] } = useQuery({
+    queryKey: ["stories"],
+    queryFn: fetchStories,
+    staleTime: 0,
+    gcTime: 0,
+  });
 
   function markViewed(id: string) {
-    setStories((prev) => prev.map((s) => s.id === id ? { ...s, viewed: true } : s));
+    queryClient.setQueryData<Story[]>(["stories"], (prev) =>
+      prev?.map((s) => (s.id === id ? { ...s, viewed: true } : s))
+    );
     fetch(`/api/stories/${id}/view`, { method: "POST" }).catch(() => {});
   }
 
@@ -41,13 +51,24 @@ export default function StoriesBar() {
             className="flex flex-col items-center gap-1.5 shrink-0"
           >
             <div className={`w-16 h-16 rounded-full p-0.5 ${story.viewed ? "bg-zinc-700" : "bg-gradient-to-tr from-[#F5C400] to-[#FF6B6B]"}`}>
-              <div className="w-full h-full rounded-full overflow-hidden bg-zinc-900 border-2 border-[#080808]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={story.mediaUrl}
-                  alt=""
-                  className="w-full h-full object-cover"
-                />
+              <div className="relative w-full h-full rounded-full overflow-hidden bg-zinc-900 border-2 border-[#080808]">
+                {story.mediaType === "VIDEO" ? (
+                  <video
+                    src={story.mediaUrl}
+                    preload="metadata"
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={story.mediaUrl}
+                    alt=""
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                )}
               </div>
             </div>
             <span className={`text-[10px] max-w-[64px] truncate ${story.viewed ? "text-zinc-600" : "text-zinc-400"}`}>

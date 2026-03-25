@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter, useParams } from "next/navigation";
+import NextImage from "next/image";
 import { ArrowLeft, Image as ImageIcon, Play } from "lucide-react";
 import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import ProtectedVideo from "@/components/ProtectedVideo";
 import { useSecurityMonitor } from "@/hooks/useSecurityMonitor";
+import CommentsSection from "@/components/CommentsSection";
 
 interface Media {
   id: string;
@@ -30,9 +33,6 @@ export default function ContentPage() {
   const params = useParams();
   const id = params.id as string;
 
-  const [post, setPost] = useState<Post | null>(null);
-  const [error, setError] = useState("");
-  const [fetching, setFetching] = useState(true);
   const [selectedMedia, setSelectedMedia] = useState<Media | null>(null);
 
   // Identificador do usuário para watermark
@@ -66,18 +66,20 @@ export default function ContentPage() {
     if (!loading && !user) router.replace("/login");
   }, [user, loading, router]);
 
+  const { data: postData, isLoading: fetching, error: queryError } = useQuery({
+    queryKey: ["post", id],
+    queryFn: () => fetch(`/api/posts/${id}`).then((r) => r.json()),
+    enabled: !!user && !loading && !!id,
+    staleTime: 0,
+    gcTime: 0,
+  });
+
   useEffect(() => {
-    if (loading || !user || !id) return;
-    fetch(`/api/posts/${id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.locked) router.replace("/payment");
-        else if (data.error) setError(data.error);
-        else setPost(data.post);
-      })
-      .catch(() => setError("Erro ao carregar conteúdo"))
-      .finally(() => setFetching(false));
-  }, [id, user, loading, router]);
+    if (postData?.locked) router.replace("/payment");
+  }, [postData, router]);
+
+  const post: Post | null = postData?.post ?? null;
+  const error = postData?.error ?? (queryError ? "Erro ao carregar conteúdo" : "");
 
   const handleContextMenu = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
@@ -136,11 +138,13 @@ export default function ContentPage() {
               onContextMenu={handleContextMenu}
               onDragStart={(e) => e.preventDefault()}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <NextImage
                 src={currentMedia.url}
                 alt={post.title}
-                className="w-full max-h-[600px] object-contain pointer-events-none select-none"
+                fill
+                sizes="100vw"
+                unoptimized
+                className="object-contain pointer-events-none select-none !max-h-[600px]"
                 draggable={false}
               />
 
@@ -187,11 +191,13 @@ export default function ContentPage() {
                   <Play size={16} className="text-zinc-400" />
                 </div>
               ) : (
-                /* eslint-disable-next-line @next/next/no-img-element */
-                <img
+                <NextImage
                   src={m.url}
                   alt=""
-                  className="w-full h-full object-cover pointer-events-none select-none"
+                  fill
+                  sizes="128px"
+                  unoptimized
+                  className="object-cover pointer-events-none select-none"
                   draggable={false}
                 />
               )}
@@ -206,6 +212,8 @@ export default function ContentPage() {
           Nenhuma mídia disponível.
         </div>
       )}
+
+      <CommentsSection postId={id} currentUserId={user?.id} />
 
       {/* Aviso de proteção */}
       <p className="text-center text-zinc-700 text-xs mt-8 select-none">

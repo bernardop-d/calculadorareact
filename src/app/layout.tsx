@@ -4,6 +4,7 @@ import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import ConditionalNav from "@/components/ConditionalNav";
+import ReactQueryProvider from "@/lib/query-client";
 
 const geist = Geist({
   variable: "--font-geist",
@@ -21,14 +22,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="pt-BR" className={`${geist.variable} h-full antialiased`}>
-      <body className="min-h-full text-white">
-        <ThemeProvider>
-          <AuthProvider>
-            <ConditionalNav />
-            {children}
-          </AuthProvider>
-        </ThemeProvider>
+    <html
+      lang="pt-BR"
+      className={`${geist.variable} h-full antialiased`}
+      data-theme="dark"
+      suppressHydrationWarning
+    >
+      <body className="min-h-full text-white" suppressHydrationWarning>
+        <ReactQueryProvider>
+          <ThemeProvider>
+            <AuthProvider>
+              <ConditionalNav />
+              {children}
+            </AuthProvider>
+          </ThemeProvider>
+        </ReactQueryProvider>
       </body>
     </html>
   );
