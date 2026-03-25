@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       { posts: formattedPosts, nextCursor },
-      { headers: { "Cache-Control": "private, max-age=30, stale-while-revalidate=60" } }
+      { headers: { "Cache-Control": "no-store" } }
     );
   } catch (error) {
     console.error("[POSTS_GET]", error);
