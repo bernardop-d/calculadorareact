@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import Button from "@/components/ui/Button";
 import PostGridItem from "@/components/admin/PostGridItem";
 import {
-  Plus, ArrowLeft,
+  Plus, ArrowLeft, CheckSquare, X as XIcon, EyeOff,
   ImageIcon, Lock, Globe, Crown, Upload, X, FileVideo, Image as ImgIcon,
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
@@ -74,6 +74,9 @@ export default function AdminPostsPage() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [selecting, setSelecting] = useState(false);
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [bulkLoading, setBulkLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
@@ -86,7 +89,6 @@ export default function AdminPostsPage() {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   } = useForm<PostFormData>({ resolver: zodResolver(postSchema) as any });
 
-  const published = watch("published");
   const contentTier = watch("contentTier");
 
   const { data: postsData, isLoading: loading } = useQuery<{ posts: Post[] }>({
@@ -350,36 +352,9 @@ export default function AdminPostsPage() {
             </div>
           )}
 
-          {/* Status */}
-          <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
-            <div>
-              <p className="text-sm font-semibold text-white">
-                {published ? "Publicado" : "Salvar como rascunho"}
-              </p>
-              <p className="text-xs text-zinc-500">
-                {published ? "Visível para os assinantes agora" : "Só você pode ver até publicar"}
-              </p>
-            </div>
-            <Controller
-              name="published"
-              control={control}
-              render={({ field }) => (
-                <button
-                  type="button"
-                  title={field.value ? "Despublicar" : "Publicar"}
-                  onClick={() => field.onChange(!field.value)}
-                  className={`relative w-12 h-6 rounded-full transition-colors ${
-                    field.value ? "bg-[#F5C400]" : "bg-zinc-700"
-                  }`}
-                >
-                  <span
-                    className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${
-                      field.value ? "translate-x-6" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              )}
-            />
+          <div className="flex items-center gap-2 bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3">
+            <EyeOff size={15} className="text-zinc-500 shrink-0" />
+            <p className="text-sm text-zinc-400">Será salvo como <span className="text-white font-medium">rascunho</span> — publique depois na lista de conteúdos</p>
           </div>
 
           <Button
@@ -390,25 +365,102 @@ export default function AdminPostsPage() {
           >
             {saving || uploading
               ? uploading ? "Enviando mídia..." : "Salvando..."
-              : mode === "create"
-                ? published ? "Publicar agora" : "Salvar rascunho"
-                : "Salvar alterações"}
+              : "Salvar rascunho"}
           </Button>
         </form>
       </div>
     );
   }
 
+  function toggleSelect(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function exitSelecting() {
+    setSelecting(false);
+    setSelected(new Set());
+  }
+
+  async function bulkPublish(publish: boolean) {
+    if (selected.size === 0) return;
+    setBulkLoading(true);
+    await Promise.all(
+      [...selected].map((id) =>
+        fetch(`/api/admin/posts/${id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ published: publish }),
+        })
+      )
+    );
+    await queryClient.invalidateQueries({ queryKey: ["admin-posts"] });
+    exitSelecting();
+    setBulkLoading(false);
+  }
+
   /* ── LIST ── */
   return (
     <div className="p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-8">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
         <h1 className="text-2xl font-bold text-white">Conteúdos</h1>
-        <Button onClick={startCreate}>
-          <Plus size={16} className="mr-1.5" />
-          Novo post
-        </Button>
+        <div className="flex items-center gap-2">
+          {!selecting && (
+            <>
+              <button
+                type="button"
+                onClick={() => setSelecting(true)}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-sm text-zinc-400 hover:text-white hover:bg-white/5 transition-colors"
+              >
+                <CheckSquare size={15} />
+                Selecionar
+              </button>
+              <Button onClick={startCreate}>
+                <Plus size={16} className="mr-1.5" />
+                Novo post
+              </Button>
+            </>
+          )}
+        </div>
       </div>
+
+      {/* Barra de seleção */}
+      {selecting && (
+        <div className="flex items-center justify-between bg-zinc-900 border border-zinc-800 rounded-xl px-4 py-3 mb-4">
+          <div className="flex items-center gap-3">
+            <button type="button" title="Cancelar seleção" onClick={exitSelecting} className="text-zinc-400 hover:text-white transition-colors">
+              <XIcon size={18} />
+            </button>
+            <span className="text-sm text-zinc-300">
+              {selected.size > 0 ? `${selected.size} selecionado(s)` : "Toque nos posts para selecionar"}
+            </span>
+          </div>
+          {selected.size > 0 && (
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                disabled={bulkLoading}
+                onClick={() => bulkPublish(false)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium bg-zinc-800 text-zinc-300 hover:bg-zinc-700 transition-colors disabled:opacity-50"
+              >
+                Despublicar
+              </button>
+              <button
+                type="button"
+                disabled={bulkLoading}
+                onClick={() => bulkPublish(true)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-[#F5C400] text-black hover:bg-[#FFD700] transition-colors disabled:opacity-50"
+              >
+                {bulkLoading ? "Publicando..." : "Publicar"}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {loading ? (
         <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-0.5">
@@ -432,6 +484,9 @@ export default function AdminPostsPage() {
               post={post}
               onEdit={startEdit}
               onDelete={deletePost}
+              selecting={selecting}
+              selected={selected.has(post.id)}
+              onToggleSelect={toggleSelect}
             />
           ))}
         </div>

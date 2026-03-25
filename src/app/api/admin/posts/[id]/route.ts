@@ -68,6 +68,41 @@ export async function PUT(
   }
 }
 
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const admin = await requireAdmin();
+    if (!admin) return NextResponse.json({ error: "Acesso negado" }, { status: 403 });
+
+    const { id } = await params;
+    const { published } = await req.json();
+    if (typeof published !== "boolean") {
+      return NextResponse.json({ error: "Campo inválido" }, { status: 400 });
+    }
+
+    const previous = await prisma.post.findUnique({ where: { id }, select: { published: true, title: true } });
+    const isNewlyPublished = !previous?.published && published;
+
+    const post = await prisma.post.update({ where: { id }, data: { published } });
+
+    if (isNewlyPublished) {
+      prisma.user
+        .findMany({ where: { subscription: { status: "ACTIVE" } }, select: { email: true } })
+        .then((users) => {
+          const emails = users.map((u) => u.email);
+          return sendNewPostNotification(emails, { title: post.title, id: post.id, thumbnail: null });
+        })
+        .catch((err) => console.error("[NOTIFY]", err));
+    }
+
+    return NextResponse.json({ post });
+  } catch {
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
+  }
+}
+
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
