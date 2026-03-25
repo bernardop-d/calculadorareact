@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Button from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, ArrowLeft,
   ImageIcon, Lock, Globe, Crown, Upload, X, FileVideo, Image as ImgIcon,
@@ -411,9 +410,9 @@ export default function AdminPostsPage() {
       </div>
 
       {loading ? (
-        <div className="space-y-3">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="bg-zinc-900 rounded-xl h-16 animate-pulse" />
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-0.5">
+          {[...Array(10)].map((_, i) => (
+            <div key={i} className="aspect-square bg-zinc-900 animate-pulse" />
           ))}
         </div>
       ) : posts.length === 0 ? (
@@ -425,52 +424,86 @@ export default function AdminPostsPage() {
           </button>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-0.5">
           {posts.map((post) => (
-            <Card key={post.id}>
-              <CardContent className="flex items-center justify-between py-3">
-                <div className="flex items-center gap-4 min-w-0">
-                  {post.media[0] ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={post.media[0].url} alt="" className="w-12 h-12 object-cover rounded-lg shrink-0" />
-                  ) : (
-                    <div className="w-12 h-12 bg-zinc-800 rounded-lg shrink-0 flex items-center justify-center">
-                      <ImageIcon size={18} className="text-zinc-600" />
-                    </div>
-                  )}
-                  <div className="min-w-0">
-                    <p className="text-white font-medium truncate">{post.title}</p>
-                    <p className="text-zinc-500 text-xs">
-                      {formatDate(post.createdAt)} · {post._count.media} mídia(s)
-                    </p>
-                  </div>
+            <div key={post.id} className="relative aspect-square group overflow-hidden bg-zinc-900">
+              {post.media[0] ? (
+                post.media[0].type === "VIDEO" ? (
+                  <video
+                    src={post.media[0].url}
+                    className="w-full h-full object-cover"
+                    muted
+                    preload="metadata"
+                  />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={post.media[0].url} alt="" className="w-full h-full object-cover" />
+                )
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <ImageIcon size={32} className="text-zinc-700" />
                 </div>
+              )}
 
-                <div className="flex items-center gap-3 shrink-0">
-                  <span className={`text-xs px-2 py-0.5 rounded-full flex items-center gap-1 ${
-                    post.published ? "bg-green-900/50 text-green-400" : "bg-zinc-800 text-zinc-500"
-                  }`}>
-                    {post.published ? <Eye size={10} /> : <EyeOff size={10} />}
-                    {post.published ? "Publicado" : "Rascunho"}
-                  </span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full ${
+              {/* Hover overlay */}
+              <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <p className="text-white text-sm font-semibold line-clamp-2 leading-tight">{post.title}</p>
+                  <span className={`shrink-0 text-[10px] px-1.5 py-0.5 rounded-full font-medium ${
                     post.contentTier === "FREE"
-                      ? "bg-green-900/30 text-green-500"
+                      ? "bg-green-500/20 text-green-400"
                       : post.contentTier === "BASIC"
-                      ? "bg-blue-900/30 text-blue-400"
-                      : "bg-[#F5C400]/10 text-[#F5C400]"
+                      ? "bg-blue-500/20 text-blue-400"
+                      : "bg-[#F5C400]/20 text-[#F5C400]"
                   }`}>
                     {post.contentTier === "FREE" ? "Grátis" : post.contentTier === "BASIC" ? "Básico" : "Premium"}
                   </span>
-                  <button type="button" title="Editar post" onClick={() => startEdit(post)} className="text-zinc-400 hover:text-white transition-colors">
-                    <Pencil size={16} />
-                  </button>
-                  <button type="button" title="Excluir post" onClick={() => deletePost(post.id)} className="text-zinc-400 hover:text-red-400 transition-colors">
-                    <Trash2 size={16} />
-                  </button>
                 </div>
-              </CardContent>
-            </Card>
+
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <span className={`flex items-center gap-1 text-[10px] px-1.5 py-0.5 rounded-full ${
+                      post.published ? "bg-green-500/20 text-green-400" : "bg-zinc-700 text-zinc-400"
+                    }`}>
+                      {post.published ? <Eye size={9} /> : <EyeOff size={9} />}
+                      {post.published ? "Publicado" : "Rascunho"}
+                    </span>
+                    <span className="text-zinc-500 text-[10px]">{post._count.media} mídia(s)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      title="Editar post"
+                      onClick={() => startEdit(post)}
+                      className="w-7 h-7 bg-white/10 hover:bg-white/20 rounded-lg flex items-center justify-center transition-colors"
+                    >
+                      <Pencil size={13} className="text-white" />
+                    </button>
+                    <button
+                      type="button"
+                      title="Excluir post"
+                      onClick={() => deletePost(post.id)}
+                      className="w-7 h-7 bg-red-500/20 hover:bg-red-500/40 rounded-lg flex items-center justify-center transition-colors"
+                    >
+                      <Trash2 size={13} className="text-red-400" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Badges sempre visíveis (sem hover) */}
+              {!post.published && (
+                <div className="absolute top-2 left-2 bg-black/60 rounded-md px-1.5 py-0.5 flex items-center gap-1">
+                  <EyeOff size={9} className="text-zinc-400" />
+                  <span className="text-[10px] text-zinc-400">Rascunho</span>
+                </div>
+              )}
+              {post._count.media > 1 && (
+                <div className="absolute top-2 right-2">
+                  <ImageIcon size={14} className="text-white drop-shadow" />
+                </div>
+              )}
+            </div>
           ))}
         </div>
       )}

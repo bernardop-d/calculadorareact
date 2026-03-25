@@ -89,44 +89,54 @@ export default function AdminStoriesPage() {
 
       {/* Stories list */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          {[...Array(4)].map((_, i) => <div key={i} className="aspect-square bg-white/[0.03] rounded-xl animate-pulse" />)}
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-0.5">
+          {[...Array(10)].map((_, i) => <div key={i} className="aspect-square bg-zinc-900 animate-pulse" />)}
         </div>
       ) : stories.length === 0 ? (
         <p className="text-zinc-600 text-sm text-center py-12">Nenhum story ainda.</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 gap-0.5">
           {stories.map((story) => {
             const expired = isExpired(story.expiresAt);
             return (
-              <div key={story.id} className={`relative rounded-xl overflow-hidden bg-zinc-900 ${expired ? "opacity-40" : ""}`}>
-                <div className="aspect-square">
-                  {story.mediaType === "VIDEO" ? (
-                    <video src={story.mediaUrl} className="w-full h-full object-cover" muted />
-                  ) : (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={story.mediaUrl} alt="" className="w-full h-full object-cover" />
-                  )}
-                </div>
+              <div key={story.id} className={`relative aspect-square group overflow-hidden bg-zinc-900 ${expired ? "opacity-40" : ""}`}>
+                {story.mediaType === "VIDEO" ? (
+                  <video src={story.mediaUrl} className="w-full h-full object-cover" muted preload="metadata" />
+                ) : (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={story.mediaUrl} alt="" className="w-full h-full object-cover" />
+                )}
 
-                <div className="absolute bottom-0 left-0 right-0 p-2 bg-gradient-to-t from-black/90 to-transparent">
+                {/* Hover overlay */}
+                <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-between p-2.5">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1 text-zinc-400 text-xs">
-                      <Clock size={10} />
+                    <div className="flex items-center gap-1 text-zinc-300 text-[10px]">
+                      <Clock size={9} />
                       {expired ? "Expirado" : formatDate(story.expiresAt)}
                     </div>
-                    <span className="text-zinc-500 text-xs">{story._count.views} views</span>
+                    <span className="text-zinc-400 text-[10px]">{story._count.views} views</span>
                   </div>
-                  {story.caption && <p className="text-white text-xs mt-0.5 truncate">{story.caption}</p>}
+                  <div className="flex items-end justify-between gap-1">
+                    {story.caption
+                      ? <p className="text-white text-[11px] line-clamp-2 flex-1">{story.caption}</p>
+                      : <span />}
+                    <button
+                      type="button"
+                      onClick={() => deleteStory(story.id)}
+                      title="Apagar story"
+                      className="w-7 h-7 bg-red-500/20 hover:bg-red-500/40 rounded-lg flex items-center justify-center transition-colors shrink-0"
+                    >
+                      <Trash2 size={13} className="text-red-400" />
+                    </button>
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={() => deleteStory(story.id)}
-                  className="absolute top-2 right-2 w-7 h-7 bg-black/70 rounded-lg flex items-center justify-center text-zinc-400 hover:text-red-400 transition-colors"
-                >
-                  <Trash2 size={13} />
-                </button>
+                {/* Badge expirado sempre visível */}
+                {expired && (
+                  <div className="absolute top-1.5 left-1.5 bg-black/60 rounded px-1.5 py-0.5">
+                    <span className="text-[9px] text-zinc-400">Expirado</span>
+                  </div>
+                )}
               </div>
             );
           })}
