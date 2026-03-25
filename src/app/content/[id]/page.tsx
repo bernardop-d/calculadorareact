@@ -10,6 +10,7 @@ import Link from "next/link";
 import { formatDate } from "@/lib/utils";
 import ProtectedVideo from "@/components/ProtectedVideo";
 import { useSecurityMonitor } from "@/hooks/useSecurityMonitor";
+import CommentsSection from "@/components/CommentsSection";
 
 interface Media {
   id: string;
@@ -211,6 +212,8 @@ export default function ContentPage() {
           Nenhuma mídia disponível.
         </div>
       )}
+
+      <CommentsSection postId={id} currentUserId={user?.id} />
 
       {/* Aviso de proteção */}
       <p className="text-center text-zinc-700 text-xs mt-8 select-none">

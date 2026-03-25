@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import LikeButton from "@/components/LikeButton";
+import CommentsSection from "@/components/CommentsSection";
 import { Lock, MessageCircle, Play, Pause, Maximize2, RotateCcw, RotateCw, Volume2, VolumeX, MoreHorizontal, BadgeCheck, DollarSign } from "lucide-react";
 import { formatRelativeDate } from "@/lib/utils";
 
@@ -166,6 +167,16 @@ async function fetchCreator(): Promise<Creator> {
 export default function PostsGrid() {
   const { user, loading } = useAuth();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const [openComments, setOpenComments] = useState<Set<string>>(new Set());
+
+  function toggleComments(postId: string) {
+    setOpenComments((prev) => {
+      const next = new Set(prev);
+      if (next.has(postId)) next.delete(postId);
+      else next.add(postId);
+      return next;
+    });
+  }
 
   const { data: creator } = useQuery({
     queryKey: ["creator-profile"],
@@ -318,7 +329,7 @@ export default function PostsGrid() {
             )}
 
             {/* Action bar */}
-            <div className="flex items-center justify-between px-3 pt-3">
+            <div className="flex items-center justify-between p-3">
               <div className="flex items-center gap-4">
                 <LikeButton
                   postId={post.id}
@@ -326,13 +337,14 @@ export default function PostsGrid() {
                   initialLiked={post.likedByMe}
                   isAuthenticated={!!user}
                 />
-                <Link
-                  href={`/content/${post.id}#comments`}
-                  className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-zinc-300 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => toggleComments(post.id)}
+                  className={`flex cursor-pointer items-center gap-1.5 text-sm transition-colors ${openComments.has(post.id) ? "text-[#F5C400]" : "text-zinc-500 hover:text-zinc-300"}`}
                 >
                   <MessageCircle size={18} />
                   <span>{post.commentCount}</span>
-                </Link>
+                </button>
                 <Link
                   href="/payment"
                   className="flex items-center gap-1.5 text-sm text-zinc-500 hover:text-[#F5C400] transition-colors"
@@ -342,12 +354,10 @@ export default function PostsGrid() {
               </div>
             </div>
 
-            {/* Stats */}
-            <p className="p-3 mt-2 text-xs text-zinc-500">
-              <span className="text-zinc-300 font-semibold">{post.likeCount}</span> curtidas
-              {" • "}
-              <span className="text-zinc-300 font-semibold">{post.commentCount}</span> comentários
-            </p>
+            {/* Inline comments */}
+            {openComments.has(post.id) && (
+              <CommentsSection postId={post.id} currentUserId={user?.id} compact />
+            )}
           </article>
         ))}
       </div>

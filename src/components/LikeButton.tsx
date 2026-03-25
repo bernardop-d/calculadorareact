@@ -46,7 +46,7 @@ export default function LikeButton({ postId, initialCount, initialLiked, isAuthe
       type="button"
       onClick={toggle}
       disabled={!isAuthenticated}
-      className={`flex items-center gap-1 text-xs transition-all ${
+      className={`flex cursor-pointer items-center gap-1 text-xs transition-all ${
         liked ? "text-red-400" : "text-zinc-500 hover:text-red-400"
       } disabled:cursor-default`}
       title={isAuthenticated ? (liked ? "Descurtir" : "Curtir") : "Faça login para curtir"}

@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert, Sun, Moon } from "lucide-react";
+import { LayoutDashboard, FileImage, Users, CreditCard, LogOut, Crown, Layers, MessageCircle, ShieldAlert, Sun, Moon, MessageSquare } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -13,6 +13,7 @@ const NAV_ITEMS = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/posts", label: "Conteúdos", icon: FileImage },
   { href: "/admin/stories", label: "Stories", icon: Layers },
+  { href: "/admin/comments", label: "Comentários", icon: MessageSquare },
   { href: "/admin/messages", label: "Mensagens", icon: MessageCircle },
   { href: "/admin/users", label: "Usuários", icon: Users },
   { href: "/admin/payments", label: "Pagamentos", icon: CreditCard },
