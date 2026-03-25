@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db";
 export async function GET(_req: NextRequest) {
   const admin = await prisma.user.findFirst({
     where: { role: "ADMIN" },
-    select: { name: true, avatarUrl: true, bio: true },
+    select: { name: true, avatarUrl: true, bio: true, email: true },
   });
 
   const [totalPosts, activeFans, recentPosts] = await Promise.all([
@@ -20,6 +20,7 @@ export async function GET(_req: NextRequest) {
 
   return NextResponse.json({
     name: admin?.name ?? "Queen Rayalla",
+    username: (admin?.name ?? "queenrayalla").toLowerCase().replace(/\s+/g, ""),
     avatarUrl: admin?.avatarUrl ?? "/creator.jpg",
     bio: admin?.bio ?? "Conteúdo exclusivo feito com vontade e sem vergonha. Só pra quem tem coragem de entrar.",
     stats: { totalPosts, activeFans },

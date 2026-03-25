@@ -52,13 +52,23 @@ export default function StoriesBar() {
           >
             <div className={`w-16 h-16 rounded-full p-0.5 ${story.viewed ? "bg-zinc-700" : "bg-gradient-to-tr from-[#F5C400] to-[#FF6B6B]"}`}>
               <div className="relative w-full h-full rounded-full overflow-hidden bg-zinc-900 border-2 border-[#080808]">
-                <Image
-                  src={story.mediaUrl}
-                  alt=""
-                  fill
-                  sizes="64px"
-                  className="object-cover"
-                />
+                {story.mediaType === "VIDEO" ? (
+                  <video
+                    src={story.mediaUrl}
+                    preload="metadata"
+                    muted
+                    playsInline
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <Image
+                    src={story.mediaUrl}
+                    alt=""
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                  />
+                )}
               </div>
             </div>
             <span className={`text-[10px] max-w-[64px] truncate ${story.viewed ? "text-zinc-600" : "text-zinc-400"}`}>

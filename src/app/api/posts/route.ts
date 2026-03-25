@@ -70,6 +70,7 @@ export async function GET(req: NextRequest) {
           createdAt: post.createdAt,
           mediaCount: post._count.media,
           thumbnail,
+          firstMediaType: post.media[0]?.type ?? null,
           locked,
         };
       })

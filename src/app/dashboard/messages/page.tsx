@@ -67,7 +67,7 @@ export default function MessagesPage() {
   const myId = user.id;
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-5rem)]">
+    <div className="max-w-xl mx-auto px-4 py-6 flex flex-col h-[calc(100vh-9rem)]">
       <div className="flex items-center gap-3 mb-4">
         <Link href="/dashboard" className="text-zinc-500 hover:text-white transition-colors">
           <ArrowLeft size={20} />

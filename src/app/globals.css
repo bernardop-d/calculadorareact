@@ -94,6 +94,15 @@ body {
 /* Video progress bar — width driven by --vp custom property */
 .video-progress { width: var(--vp, 0%); }
 
+/* Video fullscreen — fill the entire screen */
+video:fullscreen,
+video:-webkit-full-screen {
+  width: 100vw !important;
+  height: 100vh !important;
+  object-fit: contain;
+  background: #000;
+}
+
 /* Media protection */
 img, video {
   -webkit-user-drag: none;

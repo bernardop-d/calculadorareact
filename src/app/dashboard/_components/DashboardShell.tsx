@@ -8,7 +8,7 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import { Crown, Flame } from "lucide-react";
 import PaymentSuccessBanner from "./PaymentSuccessBanner";
-import DashboardNav from "./DashboardNav";
+import BottomNav from "./BottomNav";
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
   const { user, isSubscribed, loading, logout } = useAuth();
@@ -38,7 +38,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   if (!user) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-3xl mx-auto px-4 py-6 pb-24">
       <Suspense fallback={null}>
         <PaymentSuccessBanner />
       </Suspense>
@@ -63,21 +63,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         </div>
       )}
 
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-xl font-bold text-white">Olá, {user.name || "Visitante"}!</h1>
-          <p className="text-zinc-500 text-xs mt-0.5">
-            {isSubscribed ? "Assinatura ativa" : "Navegando como visitante"}
-          </p>
-        </div>
-        <Button type="button" variant="ghost" size="sm" onClick={logout}>
-          Sair
-        </Button>
-      </div>
-
-      <DashboardNav unreadMessages={unreadMessages} />
-
       {children}
+
+      <BottomNav unreadMessages={unreadMessages} />
     </div>
   );
 }

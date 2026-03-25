@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -22,6 +22,7 @@ interface Props {
 export default function StoryViewer({ stories, initialIndex, onClose, onView }: Props) {
   const [index, setIndex] = useState(initialIndex);
   const [progress, setProgress] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const current = stories[index];
   const duration = current?.mediaType === "VIDEO" ? 30000 : 5000;
@@ -46,6 +47,16 @@ export default function StoryViewer({ stories, initialIndex, onClose, onView }: 
     }, 100);
     return () => clearInterval(interval);
   }, [index, duration, next]);
+
+  // Video playback — manual play() to avoid AbortError from autoPlay + fast navigation
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || current.mediaType !== "VIDEO") return;
+    const playPromise = video.play();
+    return () => {
+      playPromise?.then(() => video.pause()).catch(() => {});
+    };
+  }, [index, current.mediaType]);
 
   // Keyboard navigation
   useEffect(() => {
@@ -87,9 +98,9 @@ export default function StoryViewer({ stories, initialIndex, onClose, onView }: 
       <div className="relative max-w-sm w-full h-[85vh]">
         {current.mediaType === "VIDEO" ? (
           <video
+            ref={videoRef}
             key={current.id}
             src={current.mediaUrl}
-            autoPlay
             muted
             playsInline
             className="w-full h-full object-contain"
