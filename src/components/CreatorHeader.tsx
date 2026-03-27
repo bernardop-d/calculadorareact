@@ -58,18 +58,14 @@ export default function CreatorHeader({ name, username, avatarUrl, coverUrl, bio
         <div className="flex items-end justify-between -mt-10 mb-3">
           <div className="relative">
             <div className="w-20 h-20 rounded-full border-4 border-[var(--background)] overflow-hidden bg-zinc-800">
-              {avatarUrl ? (
-                <Image
-                  src={avatarUrl}
-                  alt={name}
-                  width={80}
-                  height={80}
-                  className="object-cover w-full h-full"
-                  unoptimized={avatarUrl.startsWith("http")}
-                />
-              ) : (
-                <div className="w-full h-full bg-zinc-700" />
-              )}
+              <Image
+                src={avatarUrl ?? "/creator.jpg"}
+                alt={name}
+                width={80}
+                height={80}
+                className="object-cover w-full h-full"
+                unoptimized={!!avatarUrl && avatarUrl.startsWith("http")}
+              />
             </div>
             {/* Online dot */}
             <span className="absolute bottom-1 right-1 w-3.5 h-3.5 bg-green-500 border-2 border-[var(--background)] rounded-full" />

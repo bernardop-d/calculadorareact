@@ -251,16 +251,14 @@ export default function PostsGrid() {
             <div className="flex items-center justify-between p-3">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800 shrink-0">
-                  {creator?.avatarUrl && (
-                    <Image
-                      src={creator.avatarUrl}
-                      alt={creator.name ?? ""}
-                      width={48}
-                      height={48}
-                      className="object-cover w-full h-full"
-                      unoptimized={creator.avatarUrl.startsWith("http")}
-                    />
-                  )}
+                  <Image
+                    src={creator?.avatarUrl ?? "/creator.jpg"}
+                    alt={creator?.name ?? ""}
+                    width={48}
+                    height={48}
+                    className="object-cover w-full h-full"
+                    unoptimized={!!creator?.avatarUrl && creator.avatarUrl.startsWith("http")}
+                  />
                 </div>
                 <div>
                   <div className="flex items-center gap-1">

@@ -37,18 +37,12 @@ export default function LinksPage() {
       <div className="w-full max-w-sm">
         {/* Profile */}
         <div className="flex flex-col items-center mb-10">
-          {profile?.avatarUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={profile.avatarUrl}
-              alt={profile.name}
-              className="w-24 h-24 rounded-full object-cover border-2 border-[#F5C400]/40 mb-4"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-[#F5C400]/10 border-2 border-[#F5C400]/30 flex items-center justify-center mb-4">
-              <span className="text-3xl text-[#F5C400]">Q</span>
-            </div>
-          )}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={profile?.avatarUrl ?? "/creator.jpg"}
+            alt={profile?.name ?? ""}
+            className="w-24 h-24 rounded-full object-cover border-2 border-[#F5C400]/40 mb-4"
+          />
           <h1 className="text-xl font-bold text-white mb-1">
             {loading ? "..." : profile?.name ?? "Queen Rayalla"}
           </h1>
