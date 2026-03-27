@@ -39,7 +39,14 @@ export default function CreatorHeader({ name, username, avatarUrl, coverUrl, bio
             unoptimized={coverUrl.startsWith("http")}
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-zinc-800 to-zinc-900" />
+          <Image
+            src="/header.jpg"
+            alt=""
+            fill
+            priority
+            className="object-cover object-center sm:object-[center_30%]"
+            sizes="100vw"
+          />
         )}
         {/* Share button */}
         <button
@@ -59,7 +66,7 @@ export default function CreatorHeader({ name, username, avatarUrl, coverUrl, bio
           <div className="relative">
             <div className="w-20 h-20 rounded-full border-4 border-[var(--background)] overflow-hidden bg-zinc-800">
               <Image
-                src={avatarUrl ?? "/creator.jpg"}
+                src={avatarUrl ?? "/avatar.jpg"}
                 alt={name}
                 width={80}
                 height={80}

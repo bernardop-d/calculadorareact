@@ -52,7 +52,7 @@ export default function ProfilePage() {
       <div className="relative">
         {/* Banner */}
         <div className="h-48 sm:h-64 relative overflow-hidden">
-          <Image src="/creator.jpg" alt="" fill sizes="100vw" className="object-cover object-top hero-bg-image scale-110" priority />
+          <Image src="/avatar.jpg" alt="" fill sizes="100vw" className="object-cover object-top hero-bg-image scale-110" priority />
           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#080808]" />
         </div>
 

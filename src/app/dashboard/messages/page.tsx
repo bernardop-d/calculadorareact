@@ -73,7 +73,7 @@ export default function MessagesPage() {
           <ArrowLeft size={20} />
         </Link>
         <div className="relative w-9 h-9 rounded-full overflow-hidden bg-[#F5C400]/10 border border-[#F5C400]/30 shrink-0">
-          <Image src="/creator.jpg" alt="" fill sizes="36px" className="object-cover object-top" />
+          <Image src="/avatar.jpg" alt="" fill sizes="36px" className="object-cover object-top" />
         </div>
         <div>
           <p className="text-white font-bold text-sm">Queen Rayalla</p>

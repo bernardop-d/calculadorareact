@@ -78,7 +78,7 @@ export default function DashboardContentPage() {
 
       {/* Tab content */}
       {tab === "posts" ? (
-        <div className="px-0 pt-4">
+        <div className="px-2 md:px-0 pt-4">
           <PostsGrid />
         </div>
       ) : (

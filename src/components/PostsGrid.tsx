@@ -252,7 +252,7 @@ export default function PostsGrid() {
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-zinc-800 shrink-0">
                   <Image
-                    src={creator?.avatarUrl ?? "/creator.jpg"}
+                    src={creator?.avatarUrl ?? "/avatar.jpg"}
                     alt={creator?.name ?? ""}
                     width={48}
                     height={48}
