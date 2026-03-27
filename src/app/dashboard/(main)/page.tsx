@@ -60,7 +60,7 @@ export default function DashboardContentPage() {
           }`}
         >
           <LayoutList size={16} />
-          <span>{profile?.stats.totalPosts ?? 0} POSTAGENS</span>
+          <span>{profile?.stats?.totalPosts ?? 0} POSTAGENS</span>
         </button>
         <button
           type="button"

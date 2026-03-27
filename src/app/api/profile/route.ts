@@ -1,13 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 
+async function getOrCreateCreatorProfile() {
+  const existing = await prisma.creatorProfile.findUnique({ where: { id: "singleton" } });
+  if (existing) return existing;
+  try {
+    return await prisma.creatorProfile.create({
+      data: { id: "singleton", name: "Queen Rayalla" },
+    });
+  } catch {
+    const retry = await prisma.creatorProfile.findUnique({ where: { id: "singleton" } });
+    if (retry) return retry;
+    throw new Error("Não foi possível criar ou ler CreatorProfile");
+  }
+}
+
 export async function GET(_req: NextRequest) {
+  try {
   const [profile, totalPosts, activeFans, recentPosts] = await Promise.all([
-    prisma.creatorProfile.upsert({
-      where: { id: "singleton" },
-      update: {},
-      create: { id: "singleton", name: "Queen Rayalla" },
-    }),
+    getOrCreateCreatorProfile(),
     prisma.post.count({ where: { published: true } }),
     prisma.subscription.count({ where: { status: "ACTIVE" } }),
     prisma.post.findMany({
@@ -21,7 +32,7 @@ export async function GET(_req: NextRequest) {
   const name = profile?.name ?? "Queen Rayalla";
   const bio =
     profile?.bio ??
-    "Conteúdo exclusivo feito com vontade e sem vergonha. Só pra quem tem coragem de entrar.";
+    "The most greedy and insatiable by cock, is inviting you to sign your account at onlyfans😈🔥📸🎥🎬🎞️ don't waste time, we will feel pleasure together I promise to make you enjoy a lot with my erotic content! 🔥🔥🔥🔥";
   const avatarUrl = profile?.avatarUrl ?? null;
 
   return NextResponse.json({
@@ -39,4 +50,11 @@ export async function GET(_req: NextRequest) {
       likeCount: p.likeCount,
     })),
   });
+  } catch (err) {
+    console.error("[PROFILE_GET]", err);
+    return NextResponse.json(
+      { error: "Erro ao carregar perfil" },
+      { status: 500 }
+    );
+  }
 }
